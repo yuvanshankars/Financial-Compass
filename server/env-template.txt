@@ -1,0 +1,26 @@
+# Server Configuration
+# Copy this file to .env in the server directory
+PORT=5000
+NODE_ENV=development
+
+# MongoDB Configuration
+MONGO_URI=mongodb://localhost:27017/financial-compass
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRE=30d
+
+# CORS Configuration
+CLIENT_URL=http://localhost:3000
+
+# Session Configuration (if using express-session)
+SESSION_SECRET=your-session-secret-key-change-this-too
+
+# Email Configuration (for future features)
+# EMAIL_SERVICE=gmail
+# EMAIL_USER=your-email@gmail.com
+# EMAIL_PASS=your-app-password
+
+# File Upload Configuration (for future features)
+# MAX_FILE_SIZE=5000000
+# UPLOAD_PATH=./uploads
