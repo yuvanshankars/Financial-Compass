@@ -476,5 +476,4 @@ const Transactions = () => {
     </div>
   );
 };
-
 export default Transactions;
