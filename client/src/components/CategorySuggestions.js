@@ -4,8 +4,56 @@ import { toast } from 'react-toastify';
 import {
   CheckIcon,
   PlusIcon,
-  SparklesIcon
+  SparklesIcon,
+  ArrowLeftIcon,
+  HomeIcon,
+  ShoppingBagIcon,
+  BanknotesIcon,
+  FilmIcon,
+  MusicalNoteIcon,
+  GiftIcon,
+  WifiIcon,
+  TruckIcon,
+  ShoppingCartIcon,
+  CakeIcon,
+  HeartIcon,
+  BriefcaseIcon,
+  ComputerDesktopIcon,
+  ChartBarIcon,
+  PlusCircleIcon,
+  AcademicCapIcon,
+  ShieldCheckIcon,
+  CreditCardIcon,
+  UserIcon,
+  DocumentTextIcon,
+  EllipsisHorizontalIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
+
+const iconComponents = {
+  'home': HomeIcon,
+  'shopping': ShoppingBagIcon,
+  'money': BanknotesIcon,
+  'entertainment': FilmIcon,
+  'music': MusicalNoteIcon,
+  'gift': GiftIcon,
+  'internet': WifiIcon,
+  'transport': TruckIcon,
+  'groceries': ShoppingCartIcon,
+  'food': CakeIcon,
+  'health': HeartIcon,
+  'briefcase': BriefcaseIcon,
+  'computer-desktop': ComputerDesktopIcon,
+  'chart-bar': ChartBarIcon,
+  'plus-circle': PlusCircleIcon,
+  'academic-cap': AcademicCapIcon,
+  'shield-check': ShieldCheckIcon,
+  'credit-card': CreditCardIcon,
+  'user': UserIcon,
+  'document-text': DocumentTextIcon,
+  'ellipsis-horizontal': EllipsisHorizontalIcon,
+  'tag': TagIcon
+};
 
 const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => {
   const [suggestions, setSuggestions] = useState([]);
@@ -68,7 +116,6 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
         toast.success(`Successfully added ${result.successCount} categories!`);
         setSelectedCategories([]);
         
-        // Remove successfully created categories from suggestions
         const newSuggestions = suggestions.filter((_, index) => 
           !selectedCategories.includes(index) || 
           result.failed.some(failure => failure.response?.data?.error?.includes(suggestions[index].name))
@@ -91,66 +138,44 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
     }
   };
 
-  const getCategoryIcon = (iconName) => {
-    // Map icon names to actual icons or return a default
-    const iconMap = {
-      'briefcase': '💼',
-      'computer-desktop': '💻',
-      'chart-bar': '📈',
-      'gift': '🎁',
-      'plus-circle': '➕',
-      'utensils': '🍽️',
-      'shopping-cart': '🛒',
-      'truck': '🚛',
-      'fire': '⛽',
-      'home': '🏠',
-      'bolt': '⚡',
-      'heart': '❤️',
-      'film': '🎬',
-      'shopping-bag': '🛍️',
-      'academic-cap': '🎓',
-      'airplane': '✈️',
-      'shield-check': '🛡️',
-      'credit-card': '💳',
-      'sparkles': '✨',
-      'user': '👤',
-      'document-text': '📄',
-      'ellipsis-horizontal': '⋯'
-    };
-    return iconMap[iconName] || '📁';
+  const renderIcon = (iconName) => {
+    const IconComponent = iconComponents[iconName] || SparklesIcon;
+    return <IconComponent className="h-5 w-5" />;
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="flex justify-center items-center p-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#D4AF37]"></div>
       </div>
     );
   }
 
   if (suggestions.length === 0) {
     return (
-      <div className="text-center p-4 text-gray-500">
-        <SparklesIcon className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+      <div className="text-center p-6 text-[#64748B] bg-white rounded-xl shadow border border-[#ECEFF1]">
+        <SparklesIcon className="h-12 w-12 mx-auto mb-2 text-[#D4AF37]" />
         <p>All suggested categories have been added!</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white rounded-xl shadow-lg border border-[#ECEFF1] overflow-hidden">
       {!showSuggestions ? (
         <div className="p-6 text-center">
-          <SparklesIcon className="h-12 w-12 mx-auto mb-4 text-primary-600" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-[#0B1F3A] text-white mb-4">
+            <SparklesIcon className="h-8 w-8" />
+          </div>
+          <h3 className="text-lg font-semibold text-[#0B1F3A] mb-2">
             Quick Setup with Default Categories
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-[#64748B] mb-4">
             Get started quickly by adding popular expense and income categories to your account.
           </p>
           <button
             onClick={() => setShowSuggestions(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-[#0B1F3A] hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
           >
             <SparklesIcon className="h-4 w-4 mr-2" />
             Browse {suggestions.length} Suggested Categories
@@ -158,77 +183,82 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
         </div>
       ) : (
         <>
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-[#ECEFF1] bg-[#0B1F3A] text-white">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  Suggested Categories ({suggestions.length})
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Select categories you'd like to add to your account
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={selectAllCategories}
-                  className="text-sm text-primary-600 hover:text-primary-700"
-                >
-                  {selectedCategories.length === suggestions.length ? 'Deselect All' : 'Select All'}
-                </button>
+              <div className="flex items-center">
                 <button
                   onClick={() => setShowSuggestions(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700"
+                  className="mr-2 p-1 rounded-lg hover:bg-[#0B1F3A]/80 transition-colors"
                 >
-                  Hide
+                  <ArrowLeftIcon className="h-5 w-5" />
                 </button>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Suggested Categories ({suggestions.length})
+                  </h3>
+                  <p className="text-sm text-[#94A3B8]">
+                    Select categories you'd like to add to your account
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={selectAllCategories}
+                className="text-sm text-[#D4AF37] hover:text-[#D4AF37]/80 transition-colors"
+              >
+                {selectedCategories.length === suggestions.length ? 'Deselect All' : 'Select All'}
+              </button>
             </div>
           </div>
 
           <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-              {suggestions.map((category, index) => (
-                <div
-                  key={index}
-                  onClick={() => toggleCategorySelection(index)}
-                  className={`relative flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                    selectedCategories.includes(index)
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center flex-1">
-                    <div 
-                      className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-white text-sm font-medium mr-3"
-                      style={{ backgroundColor: category.color }}
-                    >
-                      {getCategoryIcon(category.icon)}
+              {suggestions.map((category, index) => {
+                const IconComponent = iconComponents[category.icon] || SparklesIcon;
+                return (
+                  <div
+                    key={index}
+                    onClick={() => toggleCategorySelection(index)}
+                    className={`relative flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedCategories.includes(index)
+                        ? 'border-[#0B1F3A] bg-[#0B1F3A]/10'
+                        : 'border-[#CFD8DC] hover:border-[#D4AF37] hover:bg-[#ECEFF1]'
+                    }`}
+                  >
+                    <div className="flex items-center flex-1">
+                      <div 
+                        className="flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-white mr-3"
+                        style={{ backgroundColor: category.color }}
+                      >
+                        <IconComponent className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#0B1F3A] truncate">
+                          {category.name}
+                        </p>
+                        <p className="text-xs text-[#64748B] capitalize">
+                          {category.type}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {category.name}
-                      </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {category.type}
-                      </p>
-                    </div>
+                    {selectedCategories.includes(index) && (
+                      <div className="flex-shrink-0 h-5 w-5 rounded-full bg-[#0B1F3A] text-white flex items-center justify-center">
+                        <CheckIcon className="h-3 w-3" />
+                      </div>
+                    )}
                   </div>
-                  {selectedCategories.includes(index) && (
-                    <CheckIcon className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {selectedCategories.length > 0 && (
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
+              <div className="flex items-center justify-between pt-4 border-t border-[#ECEFF1]">
+                <p className="text-sm text-[#64748B]">
                   {selectedCategories.length} categories selected
                 </p>
                 <button
                   onClick={addSelectedCategories}
                   disabled={creating}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-[#0B1F3A] hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {creating ? (
                     <>

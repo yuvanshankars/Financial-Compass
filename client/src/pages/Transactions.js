@@ -14,7 +14,8 @@ import {
   PencilSquareIcon,
   TrashIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 
 const Transactions = () => {
@@ -179,288 +180,298 @@ const Transactions = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <Link
-          to="/transactions/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-        >
-          <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-          Add Transaction
-        </Link>
-      </div>
+    <div className="bg-[#ECEFF1] min-h-screen p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-[#0B1F3A]">Transaction Ledger</h1>
+            <p className="mt-2 text-[#0B1F3A]/80">
+              Detailed record of all financial transactions
+            </p>
+          </div>
+          <Link
+            to="/transactions/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-[#0B1F3A] hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
+          >
+            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+            New Transaction
+          </Link>
+        </div>
 
-      {/* Search and Filter Bar */}
-      <div className="bg-white shadow rounded-lg mb-6">
-        <div className="p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Search Input */}
-            <div className="relative flex-grow max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        {/* Search and Filter Bar */}
+        <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden mb-6">
+          <div className="p-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              {/* Search Input */}
+              <div className="relative flex-grow max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-[#607D8B]" aria-hidden="true" />
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-10 pr-3 py-2 border border-[#CFD8DC] rounded-lg leading-5 bg-white placeholder-[#607D8B] focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm"
+                  placeholder="Search transactions..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                />
               </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Search transactions..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
-              />
+
+              {/* Filter Toggle Button */}
+              <button
+                type="button"
+                className="inline-flex items-center px-4 py-2 border border-[#CFD8DC] shadow-sm text-sm font-medium rounded-lg text-[#0B1F3A] bg-white hover:bg-[#ECEFF1] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <FunnelIcon className="-ml-1 mr-2 h-5 w-5 text-[#607D8B]" aria-hidden="true" />
+                Filters
+                {(filters.startDate || filters.endDate || filters.type || filters.category) && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#D4AF37]/10 text-[#D4AF37]">
+                    Active
+                  </span>
+                )}
+              </button>
             </div>
 
-            {/* Filter Toggle Button */}
-            <button
-              type="button"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <FunnelIcon className="-ml-1 mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
-              Filters
-              {(filters.startDate || filters.endDate || filters.type || filters.category) && (
-                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                  Active
-                </span>
-              )}
-            </button>
-          </div>
+            {/* Filter Panel */}
+            {showFilters && (
+              <div className="mt-4 border-t border-[#ECEFF1] pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Date Range Filters */}
+                  <div>
+                    <label htmlFor="startDate" className="block text-sm font-medium text-[#0B1F3A] mb-1">
+                      Start Date
+                    </label>
+                    <DatePicker
+                      selected={filters.startDate}
+                      onChange={(date) => handleFilterChange('startDate', date)}
+                      selectsStart
+                      startDate={filters.startDate}
+                      endDate={filters.endDate}
+                      className="block w-full px-3 py-2 border border-[#CFD8DC] rounded-lg shadow-sm focus:outline-none focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm"
+                      placeholderText="Select start date"
+                      isClearable
+                    />
+                  </div>
 
-          {/* Filter Panel */}
-          {showFilters && (
-            <div className="mt-4 border-t border-gray-200 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Date Range Filters */}
-                <div>
-                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date
-                  </label>
-                  <DatePicker
-                    selected={filters.startDate}
-                    onChange={(date) => handleFilterChange('startDate', date)}
-                    selectsStart
-                    startDate={filters.startDate}
-                    endDate={filters.endDate}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholderText="Select start date"
-                    isClearable
-                  />
+                  <div>
+                    <label htmlFor="endDate" className="block text-sm font-medium text-[#0B1F3A] mb-1">
+                      End Date
+                    </label>
+                    <DatePicker
+                      selected={filters.endDate}
+                      onChange={(date) => handleFilterChange('endDate', date)}
+                      selectsEnd
+                      startDate={filters.startDate}
+                      endDate={filters.endDate}
+                      minDate={filters.startDate}
+                      className="block w-full px-3 py-2 border border-[#CFD8DC] rounded-lg shadow-sm focus:outline-none focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm"
+                      placeholderText="Select end date"
+                      isClearable
+                    />
+                  </div>
+
+                  {/* Type Filter */}
+                  <div>
+                    <label htmlFor="type" className="block text-sm font-medium text-[#0B1F3A] mb-1">
+                      Type
+                    </label>
+                    <select
+                      id="type"
+                      name="type"
+                      className="block w-full px-3 py-2 border border-[#CFD8DC] rounded-lg shadow-sm focus:outline-none focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm"
+                      value={filters.type}
+                      onChange={(e) => handleFilterChange('type', e.target.value)}
+                    >
+                      <option value="">All Types</option>
+                      <option value="expense">Expense</option>
+                      <option value="income">Income</option>
+                    </select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium text-[#0B1F3A] mb-1">
+                      Category
+                    </label>
+                    <select
+                      id="category"
+                      name="category"
+                      className="block w-full px-3 py-2 border border-[#CFD8DC] rounded-lg shadow-sm focus:outline-none focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm"
+                      value={filters.category}
+                      onChange={(e) => handleFilterChange('category', e.target.value)}
+                    >
+                      <option value="">All Categories</option>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date
-                  </label>
-                  <DatePicker
-                    selected={filters.endDate}
-                    onChange={(date) => handleFilterChange('endDate', date)}
-                    selectsEnd
-                    startDate={filters.startDate}
-                    endDate={filters.endDate}
-                    minDate={filters.startDate}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholderText="Select end date"
-                    isClearable
-                  />
-                </div>
-
-                {/* Type Filter */}
-                <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
-                    Type
-                  </label>
-                  <select
-                    id="type"
-                    name="type"
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    value={filters.type}
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
+                {/* Filter Actions */}
+                <div className="mt-4 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-4 py-2 border border-[#CFD8DC] shadow-sm text-sm font-medium rounded-lg text-[#0B1F3A] bg-white hover:bg-[#ECEFF1] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
+                    onClick={resetFilters}
                   >
-                    <option value="">All Types</option>
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                  </select>
-                </div>
-
-                {/* Category Filter */}
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    name="category"
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    value={filters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    <XMarkIcon className="-ml-1 mr-2 h-5 w-5 text-[#607D8B]" aria-hidden="true" />
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-[#0B1F3A] hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
+                    onClick={applyFilters}
                   >
-                    <option value="">All Categories</option>
-                    {categories.map((category) => (
-                      <option key={category._id} value={category._id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                    Apply Filters
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
 
-              {/* Filter Actions */}
-              <div className="mt-4 flex justify-end space-x-3">
+        {/* Transactions List */}
+        <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
+          {loading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#D4AF37] mx-auto"></div>
+              <p className="mt-4 text-[#607D8B]">Loading transactions...</p>
+            </div>
+          ) : error ? (
+            <div className="p-6 text-center text-red-600">{error}</div>
+          ) : transactions.length === 0 ? (
+            <div className="p-6 text-center text-[#607D8B]">
+              <p className="mb-4">No transactions found.</p>
+              {(filters.startDate || filters.endDate || filters.type || filters.category || filters.search) && (
+                <p>
+                  Try adjusting your filters or{' '}
+                  <button
+                    className="text-[#0B1F3A] hover:text-[#D4AF37] underline"
+                    onClick={resetFilters}
+                  >
+                    clear all filters
+                  </button>
+                </p>
+              )}
+            </div>
+          ) : (
+            <ul className="divide-y divide-[#ECEFF1]">
+              {transactions.map((transaction) => (
+                <li key={transaction._id} className="hover:bg-[#ECEFF1]/30 transition-colors">
+                  <div className="px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className={`flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center ${transaction.type === 'expense' ? 'bg-red-100' : 'bg-[#2ECC71]/10'}`}>
+                          {transaction.type === 'expense' ? (
+                            <ArrowDownIcon className="h-5 w-5 text-red-600" />
+                          ) : (
+                            <ArrowUpIcon className="h-5 w-5 text-[#2ECC71]" />
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-[#0B1F3A]">{transaction.description}</div>
+                          <div className="text-xs text-[#607D8B]">
+                            {transaction.category?.name || 'Uncategorized'} • {format(new Date(transaction.date), 'MMM d, yyyy')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="mr-4 text-right">
+                          <div className={`text-sm font-medium ${transaction.type === 'expense' ? 'text-red-600' : 'text-[#2ECC71]'}`}>
+                            {transaction.type === 'expense' ? '-' : '+'}${transaction.amount.toFixed(2)}
+                          </div>
+                          {transaction.type === 'expense' && transaction.category?.budget && (
+                            <div className="text-xs text-[#607D8B]">
+                              {((transaction.amount / transaction.category.budget) * 100).toFixed(0)}% of budget
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => navigate(`/transactions/${transaction._id}/edit`)}
+                            className="p-1 rounded-lg text-[#607D8B] hover:text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
+                          >
+                            <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(transaction._id)}
+                            className="p-1 rounded-lg text-[#607D8B] hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                          >
+                            <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Pagination */}
+          {!loading && !error && transactions.length > 0 && (
+            <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-[#ECEFF1]">
+              <div className="flex-1 flex justify-between sm:hidden">
                 <button
-                  type="button"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  onClick={resetFilters}
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                  className={`relative inline-flex items-center px-4 py-2 border border-[#CFD8DC] text-sm font-medium rounded-lg ${pagination.page === 1 ? 'bg-[#ECEFF1] text-[#607D8B] cursor-not-allowed' : 'bg-white text-[#0B1F3A] hover:bg-[#ECEFF1]'} transition-colors`}
                 >
-                  <XMarkIcon className="-ml-1 mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
-                  Reset
+                  Previous
                 </button>
                 <button
-                  type="button"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  onClick={applyFilters}
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page * pagination.limit >= pagination.total}
+                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-[#CFD8DC] text-sm font-medium rounded-lg ${pagination.page * pagination.limit >= pagination.total ? 'bg-[#ECEFF1] text-[#607D8B] cursor-not-allowed' : 'bg-white text-[#0B1F3A] hover:bg-[#ECEFF1]'} transition-colors`}
                 >
-                  Apply Filters
+                  Next
                 </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-[#607D8B]">
+                    Showing <span className="font-medium text-[#0B1F3A]">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
+                    <span className="font-medium text-[#0B1F3A]">
+                      {Math.min(pagination.page * pagination.limit, pagination.total)}
+                    </span>{' '}
+                    of <span className="font-medium text-[#0B1F3A]">{pagination.total}</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-lg border border-[#CFD8DC] bg-white text-sm font-medium ${pagination.page === 1 ? 'text-[#CFD8DC] cursor-not-allowed' : 'text-[#0B1F3A] hover:bg-[#ECEFF1]'} transition-colors`}
+                    >
+                      <span className="sr-only">Previous</span>
+                      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    
+                    {/* Current Page Indicator */}
+                    <span className="relative inline-flex items-center px-4 py-2 border border-[#CFD8DC] bg-white text-sm font-medium text-[#0B1F3A]">
+                      Page {pagination.page}
+                    </span>
+                    
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={pagination.page * pagination.limit >= pagination.total}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-lg border border-[#CFD8DC] bg-white text-sm font-medium ${pagination.page * pagination.limit >= pagination.total ? 'text-[#CFD8DC] cursor-not-allowed' : 'text-[#0B1F3A] hover:bg-[#ECEFF1]'} transition-colors`}
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
               </div>
             </div>
           )}
         </div>
-      </div>
-
-      {/* Transactions List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        {loading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Loading transactions...</p>
-          </div>
-        ) : error ? (
-          <div className="p-6 text-center text-red-500">{error}</div>
-        ) : transactions.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            <p className="mb-4">No transactions found.</p>
-            {(filters.startDate || filters.endDate || filters.type || filters.category || filters.search) && (
-              <p>
-                Try adjusting your filters or{' '}
-                <button
-                  className="text-primary-600 hover:text-primary-500 underline"
-                  onClick={resetFilters}
-                >
-                  clear all filters
-                </button>
-              </p>
-            )}
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-200">
-            {transactions.map((transaction) => (
-              <li key={transaction._id}>
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${transaction.type === 'expense' ? 'bg-red-100' : 'bg-green-100'}`}>
-                        {transaction.type === 'expense' ? (
-                          <ArrowDownIcon className="h-5 w-5 text-red-600" />
-                        ) : (
-                          <ArrowUpIcon className="h-5 w-5 text-green-600" />
-                        )}
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{transaction.description}</div>
-                        <div className="text-sm text-gray-500">
-                          {transaction.category?.name || 'Uncategorized'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="mr-4">
-                        <div className={`text-sm font-medium ${transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
-                          {transaction.type === 'expense' ? '-' : '+'} ${transaction.amount.toFixed(2)}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {format(new Date(transaction.date), 'MMM d, yyyy')}
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => navigate(`/transactions/${transaction._id}/edit`)}
-                          className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                        >
-                          <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(transaction._id)}
-                          className="p-1 rounded-full text-gray-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                        >
-                          <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {/* Pagination */}
-        {!loading && !error && transactions.length > 0 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${pagination.page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page * pagination.limit >= pagination.total}
-                className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${pagination.page * pagination.limit >= pagination.total ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              >
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
-                  <span className="font-medium">
-                    {Math.min(pagination.page * pagination.limit, pagination.total)}
-                  </span>{' '}
-                  of <span className="font-medium">{pagination.total}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${pagination.page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                  >
-                    <span className="sr-only">Previous</span>
-                    <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                  
-                  {/* Page numbers would go here - simplified for now */}
-                  <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                    Page {pagination.page}
-                  </span>
-                  
-                  <button
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page * pagination.limit >= pagination.total}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${pagination.page * pagination.limit >= pagination.total ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
-                  >
-                    <span className="sr-only">Next</span>
-                    <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
