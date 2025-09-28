@@ -13,36 +13,22 @@ import React from 'react';
  * @param {string} [props.error] - Error message
  * @param {boolean} [props.required=false] - Whether the input is required
  */
-const FormInput = ({
-  id,
-  name,
-  label,
-  type = 'text',
-  value,
-  onChange,
-  placeholder,
-  error,
-  required = false,
-  ...rest
-}) => {
+const FormInput = ({ id, name, label, type = 'text', value, onChange, placeholder, error, required, ...rest }) => {
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="form-label">
-        {label}
-        {required && <span className="text-danger-600 ml-1">*</span>}
-      </label>
+      {label && <label htmlFor={id || name} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <input
-        id={id}
-        name={name}
         type={type}
-        value={value}
+        id={id || name}
+        name={name}
+        value={value || ''}
         onChange={onChange}
         placeholder={placeholder}
-        className={`form-input ${error ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''}`}
         required={required}
+        className={`form-input ${error ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''}`}
         {...rest}
       />
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="mt-1 text-sm text-danger-500">{error}</p>}
     </div>
   );
 };

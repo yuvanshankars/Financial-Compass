@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    background-size: 200% auto;
+    animation: shimmer 5s linear infinite;
+  }
+
+  .animate-color-shift {
+    animation: color-shift 10s infinite linear alternate;
+  }
+  @keyframes color-shift {
+    0% { color: #D4AF37; }
+    25% { color: #a67c00; }
+    50% { color: #0B1F3A; }
+    75% { color: #2ECC71; }
+    100% { color: #D4AF37; }
+  }
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

@@ -124,6 +124,38 @@ exports.getTransaction = async (req, res) => {
 // @desc    Create new transaction
 // @route   POST /api/transactions
 // @access  Private
+
+// @desc    Get all transactions for a specific date
+// @route   GET /api/transactions/date/:date
+// @access  Private
+exports.getTransactionsByDate = async (req, res) => {
+  try {
+    const date = new Date(req.params.date);
+    const nextDay = new Date(req.params.date);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const transactions = await Transaction.find({
+      user: req.user.id,
+      date: {
+        $gte: date,
+        $lt: nextDay,
+      },
+    }).populate('category', 'name color icon');
+
+    res.status(200).json({
+      success: true,
+      count: transactions.length,
+      data: transactions,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: 'Server Error',
+    });
+  }
+};
+
 exports.createTransaction = async (req, res) => {
   try {
     // Check for validation errors
@@ -279,6 +311,65 @@ exports.deleteTransaction = async (req, res) => {
   }
 };
 
+// @desc    Create new bulk transactions
+// @route   POST /api/transactions/bulk
+// @access  Private
+exports.createBulkTransactions = async (req, res) => {
+  const { transactions } = req.body;
+
+  if (!transactions || !Array.isArray(transactions)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid input" });
+  }
+
+  const createdTransactions = [];
+
+  for (const transactionData of transactions) {
+    const { amount, description, date, type, category } = transactionData;
+
+    // Basic validation
+    if (!amount || !description || !date || !type || !category) {
+      // Skip incomplete transactions
+      continue;
+    }
+
+    try {
+      const categoryDoc = await Category.findOne({
+        _id: category,
+        user: req.user.id,
+      });
+      if (!categoryDoc) {
+        // Skip if category is invalid or doesn't belong to user
+        continue;
+      }
+
+      const newTransaction = new Transaction({
+        user: req.user.id,
+        amount,
+        description,
+        date,
+        type,
+        category,
+        source: "sms",
+      });
+
+      const savedTransaction = await newTransaction.save();
+      createdTransactions.push(savedTransaction);
+    } catch (error) {
+      // Log error and continue with next transaction
+      console.error("Error creating transaction:", error);
+    }
+  }
+
+  res.status(201).json({
+    success: true,
+    data: createdTransactions,
+  });
+};
+
+
+
 // @desc    Get monthly summary (total income, expenses, balance)
 // @route   GET /api/transactions/summary/monthly
 // @access  Private
@@ -288,6 +379,9 @@ exports.getMonthlySummary = async (req, res) => {
     const now = new Date();
     const year = parseInt(req.query.year) || now.getFullYear();
     const month = parseInt(req.query.month) || now.getMonth() + 1;
+
+    console.log('User in getMonthlySummary:', req.user);
+    console.log('Year:', year, 'Month:', month);
 
     // Create date range for the month
     const startDate = new Date(year, month - 1, 1);
@@ -395,31 +489,7 @@ exports.getCategorySummary = async (req, res) => {
       0
     );
 
-    // If no category data found, return sample data for testing
-    if (categorySummary.length === 0) {
-      console.log('No category data found, returning sample data for testing');
-      const sampleCategories = [
-        { _id: 'food', name: 'Food', totalAmount: Math.random() * 500 + 200, color: '#ef4444', percentage: 35 },
-        { _id: 'transport', name: 'Transport', totalAmount: Math.random() * 300 + 100, color: '#3b82f6', percentage: 25 },
-        { _id: 'entertainment', name: 'Entertainment', totalAmount: Math.random() * 200 + 50, color: '#10b981', percentage: 15 },
-        { _id: 'utilities', name: 'Utilities', totalAmount: Math.random() * 400 + 150, color: '#f59e0b', percentage: 20 },
-        { _id: 'shopping', name: 'Shopping', totalAmount: Math.random() * 350 + 100, color: '#8b5cf6', percentage: 5 }
-      ];
-      
-      const sampleTotalExpenses = sampleCategories.reduce((sum, cat) => sum + cat.totalAmount, 0);
-      
-      return res.status(200).json({
-        success: true,
-        data: {
-          month,
-          year,
-          totalExpenses: sampleTotalExpenses,
-          categories: sampleCategories
-        }
-      });
-    }
-
-    // Add percentage to each category
+    // Map to the structure expected by the frontend
     const categoriesWithPercentage = categorySummary.map(category => ({
       ...category,
       percentage: totalExpenses > 0 ? (category.totalAmount / totalExpenses) * 100 : 0
@@ -427,12 +497,7 @@ exports.getCategorySummary = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: {
-        month,
-        year,
-        totalExpenses,
-        categories: categoriesWithPercentage
-      }
+      data: categoriesWithPercentage
     });
   } catch (err) {
     console.error(err);
@@ -492,33 +557,6 @@ exports.getMonthlyTrend = async (req, res) => {
 
     console.log('Monthly trend response - Data points:', monthlyData.length);
 
-    // If no data found, return sample data for testing
-    if (monthlyData.every(month => month.totalIncome === 0 && month.totalExpense === 0)) {
-      console.log('No transaction data found, returning sample data for testing');
-      const sampleData = [];
-      for (let month = 1; month <= 12; month++) {
-        sampleData.push({
-          month,
-          totalIncome: Math.random() * 1000 + 500,
-          totalExpense: Math.random() * 800 + 300,
-          balance: 0,
-          transactionCount: Math.floor(Math.random() * 10) + 1
-        });
-      }
-      // Calculate balance for sample data
-      sampleData.forEach(item => {
-        item.balance = item.totalIncome - item.totalExpense;
-      });
-      
-      return res.status(200).json({
-        success: true,
-        data: {
-          year,
-          monthlyData: sampleData
-        }
-      });
-    }
-
     res.status(200).json({
       success: true,
       data: {
@@ -532,5 +570,112 @@ exports.getMonthlyTrend = async (req, res) => {
       success: false,
       error: 'Server Error'
     });
+  }
+};
+
+// @desc    Get performance summary for a user
+// @route   GET /api/transactions/summary/performance
+// @access  Private
+exports.getPerformanceSummary = async (req, res) => {
+  try {
+    const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+
+    const summary = await Transaction.aggregate([
+      {
+        $match: {
+          user: req.user._id,
+          date: {
+            $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+            $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$date" },
+            type: "$type"
+          },
+          total: { $sum: "$amount" }
+        }
+      },
+      {
+        $group: {
+          _id: "$_id.month",
+          monthlyData: {
+            $push: {
+              type: "$_id.type",
+              total: "$total"
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id",
+          income: {
+            $let: {
+              vars: {
+                incomeData: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$monthlyData",
+                        as: "md",
+                        cond: { $eq: ["$$md.type", "income"] }
+                      }
+                    },
+                    0
+                  ]
+                }
+              },
+              in: "$$incomeData.total"
+            }
+          },
+          expense: {
+            $let: {
+              vars: {
+                expenseData: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$monthlyData",
+                        as: "md",
+                        cond: { $eq: ["$$md.type", "expense"] }
+                      }
+                    },
+                    0
+                  ]
+                }
+              },
+              in: "$$expenseData.total"
+            }
+          }
+        }
+      },
+      {
+        $sort: { month: 1 }
+      }
+    ]);
+
+    // Format data for recharts
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formattedData = monthNames.map((name, index) => {
+      const monthData = summary.find(s => s.month === index + 1);
+      return {
+        name,
+        income: monthData ? monthData.income : 0,
+        expense: monthData ? monthData.expense : 0
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: formattedData
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
   }
 };

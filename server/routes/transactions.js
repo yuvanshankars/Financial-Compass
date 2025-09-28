@@ -8,7 +8,10 @@ const {
   deleteTransaction,
   getMonthlySummary,
   getCategorySummary,
-  getMonthlyTrend
+  getMonthlyTrend,
+  getPerformanceSummary,
+  createBulkTransactions,
+  getTransactionsByDate
 } = require('../controllers/transactions');
 const { protect } = require('../middleware/auth');
 
@@ -25,6 +28,12 @@ router.get('/summary/category', getCategorySummary);
 
 // Get monthly trend
 router.get('/summary/trend', getMonthlyTrend);
+
+// Get performance summary
+router.get('/summary/performance', getPerformanceSummary);
+
+// Create bulk transactions
+router.post('/bulk', createBulkTransactions);
 
 // Get all transactions and create a transaction
 router
@@ -44,6 +53,8 @@ router
     ],
     createTransaction
   );
+
+router.get('/date/:date', getTransactionsByDate);
 
 // Get, update, and delete a transaction
 router

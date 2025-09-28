@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { toast } from 'react-toastify';
@@ -14,8 +14,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   ChevronLeftIcon,
-  ChevronRightIcon,
-  CurrencyDollarIcon
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 
 const Transactions = () => {
@@ -82,7 +81,7 @@ const Transactions = () => {
       navigate(`/transactions?${params.toString()}`, { replace: true });
       
       // Fetch transactions
-      const response = await axios.get(`/api/transactions?${params.toString()}`);
+      const response = await api.get(`/api/transactions?${params.toString()}`);
       
       setTransactions(response.data.data);
       setPagination(prev => ({
@@ -100,7 +99,7 @@ const Transactions = () => {
   // Fetch categories for filter dropdown
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/api/categories');
+      const response = await api.get('/api/categories');
       setCategories(response.data.data);
     } catch (err) {
       console.error('Error fetching categories:', err);
@@ -169,7 +168,7 @@ const Transactions = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this transaction?')) {
       try {
-        await axios.delete(`/api/transactions/${id}`);
+        await api.delete(`/api/transactions/${id}`);
         toast.success('Transaction deleted successfully');
         fetchTransactions(); // Refresh the list
       } catch (err) {

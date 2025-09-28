@@ -12,18 +12,20 @@ import {
   Legend,
   Title
 } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+import DataVisualization from '../components/DataVisualization';
 
-// Register ChartJS components
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
   ArcElement,
   Tooltip,
   Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
   Title
 );
 
@@ -40,7 +42,84 @@ const Reports = () => {
   // Filter states
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+
+  const getExportData = () => {
+    let data;
+    let headers;
+
+    if (activeTab === 'monthly') {
+      headers = ['Month', 'Income', 'Expenses', 'Balance', 'Transactions'];
+      data = monthlyTrend.map(item => ({
+        Month: monthNames[(item?.month || 0) - 1],
+        Income: item?.totalIncome || 0,
+        Expenses: item?.totalExpense || 0,
+        Balance: item?.balance || 0,
+        Transactions: item?.transactionCount || 0,
+      }));
+    } else if (activeTab === 'category') {
+      headers = ['Category', 'Amount', 'Percentage'];
+      data = categorySummary.map(item => ({
+        Category: item.name,
+        Amount: item.totalAmount,
+        Percentage: item.percentage.toFixed(1) + '%',
+      }));
+    } else if (activeTab === 'yearly') {
+      headers = ['Year', 'Month', 'Income', 'Expenses', 'Balance'];
+      const currentYearRows = yearlyComparison.currentYear.map((item, index) => ({
+        Year: selectedYear,
+        Month: monthNames[index],
+        Income: item?.totalIncome || 0,
+        Expenses: item?.totalExpense || 0,
+        Balance: item?.balance || 0,
+      }));
+      const prevYearRows = yearlyComparison.prevYear.map((item, index) => ({
+        Year: selectedYear - 1,
+        Month: monthNames[index],
+        Income: item?.totalIncome || 0,
+        Expenses: item?.totalExpense || 0,
+        Balance: item?.balance || 0,
+      }));
+      data = [...currentYearRows, ...prevYearRows];
+    }
+
+    return { headers, data };
+  };
+
+  const downloadCSV = () => {
+    const { headers, data } = getExportData();
   
+    if (!data || data.length === 0) {
+      alert('No data to download.');
+      return;
+    }
+  
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+    const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, `report_${activeTab}_${selectedYear}.csv`);
+  };
+  
+  const downloadExcel = () => {
+    const { headers, data } = getExportData();
+  
+    if (!data || data.length === 0) {
+      alert('No data to download.');
+      return;
+    }
+  
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+    
+    const cols = headers.map(header => ({ wch: Math.max(header.length, ...data.map(row => String(row[header]).length)) + 2 }));
+    worksheet['!cols'] = cols;
+  
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+  
+    saveAs(blob, `report_${activeTab}_${selectedYear}.xlsx`);
+  };
+
   // Years for filter dropdown (current year and 2 previous years)
   const years = [
     selectedYear,
@@ -401,11 +480,27 @@ const Reports = () => {
     <div className="bg-[#ECEFF1] min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#0B1F3A]">Financial Analytics</h1>
-          <p className="mt-2 text-[#0B1F3A]/80">
-            Comprehensive financial reports and visualizations
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-[#0B1F3A]">Financial Analytics</h1>
+            <p className="mt-2 text-[#0B1F3A]/80">
+              Comprehensive financial reports and visualizations
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <button
+              onClick={downloadCSV}
+              className="bg-[#D4AF37] text-[#0B1F3A] font-bold py-2 px-4 rounded-lg shadow-md hover:bg-[#CFD8DC] transition-colors"
+            >
+              Download CSV
+            </button>
+            <button
+              onClick={downloadExcel}
+              className="bg-[#D4AF37] text-[#0B1F3A] font-bold py-2 px-4 rounded-lg shadow-md hover:bg-[#CFD8DC] transition-colors"
+            >
+              Download Excel
+            </button>
+          </div>
         </div>
         
         {/* Report Type Tabs */}
@@ -428,6 +523,12 @@ const Reports = () => {
               className={`flex-1 py-4 px-6 text-center font-medium text-sm ${activeTab === 'yearly' ? 'text-[#0B1F3A] border-b-2 border-[#D4AF37]' : 'text-[#607D8B] hover:text-[#0B1F3A]'}`}
             >
               Yearly Comparison
+            </button>
+            <button
+              onClick={() => setActiveTab('visualization')}
+              className={`flex-1 py-4 px-6 text-center font-medium text-sm ${activeTab === 'visualization' ? 'text-[#0B1F3A] border-b-2 border-[#D4AF37]' : 'text-[#607D8B] hover:text-[#0B1F3A]'}`}
+            >
+              Data Visualization
             </button>
           </div>
         </div>
@@ -494,6 +595,7 @@ const Reports = () => {
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
+            {activeTab === 'visualization' && <DataVisualization monthlyTrend={monthlyTrend} />}
             {/* Monthly Trend Chart */}
             {activeTab === 'monthly' && (
               <div className="p-6">

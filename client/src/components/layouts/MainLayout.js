@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Chatbot from '../Chatbot';
 import {
   HomeIcon,
   CreditCardIcon,
   TagIcon,
-  ChartPieIcon,
+
   CurrencyDollarIcon,
   ArrowPathIcon,
   Bars3Icon,
@@ -13,7 +14,10 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   ChartBarIcon,
-  BanknotesIcon
+  BanknotesIcon,
+  ChatBubbleBottomCenterTextIcon,
+  ChatBubbleOvalLeftEllipsisIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
 
 const MainLayout = ({ children }) => {
@@ -21,6 +25,7 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -28,8 +33,10 @@ const MainLayout = ({ children }) => {
     { name: 'Categories', href: '/categories', icon: TagIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
     { name: 'Budgets', href: '/budgets', icon: CurrencyDollarIcon },
-    { name: 'Recurring', href: '/recurring', icon: ArrowPathIcon },
-    { name: 'Investments', href: '/investments', icon: BanknotesIcon }
+    { name: 'Recurring', href: '/recurring-transactions', icon: ArrowPathIcon },
+    { name: 'Financial Goals', href: '/financial-goals', icon: TrophyIcon },
+    { name: 'Investments', href: '/investments', icon: BanknotesIcon },
+    { name: 'Add from SMS', href: '/sms-sync', icon: ChatBubbleBottomCenterTextIcon }
   ];
 
   const handleLogout = async () => {
@@ -52,7 +59,9 @@ const MainLayout = ({ children }) => {
         <div className="fixed inset-y-0 left-0 flex max-w-xs w-full flex-col bg-white shadow-xl">
           <div className="flex items-center justify-between h-16 px-6 border-b border-[#ECEFF1]">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-[#0B1F3A]">ExpenseTracker</span>
+            <span className="text-2xl font-extrabold tracking-tight shadow-sm animate-color-shift">
+            ExpenseTracker
+          </span>
             </div>
             <button
               type="button"
@@ -114,7 +123,9 @@ const MainLayout = ({ children }) => {
         <div className="flex min-h-0 flex-1 flex-col border-r border-[#CFD8DC] bg-white shadow-sm">
           <div className="flex flex-1 flex-col overflow-y-auto pt-6 pb-4">
             <div className="flex items-center flex-shrink-0 px-6">
-              <span className="text-xl font-bold text-[#0B1F3A]">ExpenseTracker</span>
+            <span className="text-2xl font-extrabold tracking-tight shadow-sm animate-color-shift">
+            ExpenseTracker
+          </span>
             </div>
             <nav className="mt-10 flex-1 px-4 space-y-1">
               {navigation.map((item) => {
@@ -181,6 +192,33 @@ const MainLayout = ({ children }) => {
           </div>
         </main>
       </div>
+
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-4 right-4 z-50 flex items-center space-x-4">
+        {/* SMS Sync Icon */}
+        <Link
+          to="/sms-sync"
+          className="bg-[#0B1F3A] text-white rounded-full p-4 shadow-lg hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+          title="Add from SMS"
+        >
+          <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
+        </Link>
+
+        {/* Chatbot */}
+        <button
+          onClick={() => setChatbotOpen(!chatbotOpen)}
+          className="bg-[#0B1F3A] text-white rounded-full p-4 shadow-lg hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+          title="Open Chatbot"
+        >
+          <ChatBubbleOvalLeftEllipsisIcon className="h-8 w-8" />
+        </button>
+      </div>
+
+      {chatbotOpen && (
+        <div className="fixed bottom-20 right-4 z-50">
+          <Chatbot />
+        </div>
+      )}
     </div>
   );
 };

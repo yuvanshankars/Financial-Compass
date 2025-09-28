@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getCategorySuggestions, createMultipleCategories } from '../services/categoryService';
 import { toast } from 'react-toastify';
 import {
@@ -62,11 +62,7 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
   const [creating, setCreating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  useEffect(() => {
-    fetchSuggestions();
-  }, []);
-
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = useCallback(async () => {
     try {
       const response = await getCategorySuggestions();
       const availableSuggestions = response.data.filter(suggestion => 
@@ -81,7 +77,11 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
       toast.error('Failed to load category suggestions');
       setLoading(false);
     }
-  };
+  }, [existingCategories]);
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, [fetchSuggestions]);
 
   const toggleCategorySelection = (categoryIndex) => {
     setSelectedCategories(prev => {
@@ -136,11 +136,6 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
     } finally {
       setCreating(false);
     }
-  };
-
-  const renderIcon = (iconName) => {
-    const IconComponent = iconComponents[iconName] || SparklesIcon;
-    return <IconComponent className="h-5 w-5" />;
   };
 
   if (loading) {

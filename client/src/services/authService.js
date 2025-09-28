@@ -21,7 +21,7 @@ export const register = async (userData) => {
  * @returns {Promise} Promise with the response data
  */
 export const login = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
+  const response = await api.post('/api/auth/login', credentials);
   return response.data;
 };
 

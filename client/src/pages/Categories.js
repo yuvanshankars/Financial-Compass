@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import { 
   PlusIcon,
@@ -63,7 +63,7 @@ const Categories = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/categories');
+      const response = await api.get('/api/categories');
       setCategories(response.data.data);
       setLoading(false);
     } catch (err) {
@@ -116,10 +116,10 @@ const Categories = () => {
     
     try {
       if (formMode === 'add') {
-        await axios.post('/api/categories', formData);
+        await api.post('/api/categories', formData);
         toast.success('Category added successfully');
       } else {
-        await axios.put(`/api/categories/${currentCategory._id}`, formData);
+        await api.put(`/api/categories/${currentCategory._id}`, formData);
         toast.success('Category updated successfully');
       }
       
@@ -134,7 +134,7 @@ const Categories = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this category? This will affect all transactions using this category.')) {
       try {
-        await axios.delete(`/api/categories/${id}`);
+        await api.delete(`/api/categories/${id}`);
         toast.success('Category deleted successfully');
         fetchCategories();
       } catch (err) {

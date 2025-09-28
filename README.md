@@ -1,6 +1,6 @@
 # The Financial Compass - Personal Expense Tracker
 
-A comprehensive web application that helps users track their expenses, visualize spending patterns, and achieve financial goals.
+A comprehensive web application that helps users track their expenses and visualize spending patterns.
 
 ## Features
 

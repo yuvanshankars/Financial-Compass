@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import setAuthToken from './utils/setAuthToken';
 
 // Layouts
 import MainLayout from './components/layouts/MainLayout';
@@ -17,140 +18,63 @@ import AddTransaction from './pages/AddTransaction';
 import Categories from './pages/Categories';
 import Reports from './pages/Reports';
 import Budgets from './pages/Budgets';
+import Investments from './pages/Investments';
 import RecurringTransactions from './pages/RecurringTransactions';
+import SmsSync from './pages/SmsSync';
 import NotFound from './pages/NotFound';
+import SplashScreen from './components/SplashScreen';
 
-// Protected Route Component
+
+// Wrapper for protected routes
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Public Route Component (redirects to dashboard if already logged in)
+// Wrapper for public routes
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
-  }
-
-  return children;
+  const { isAuthenticated } = useAuth();
+  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
 };
+
+if (localStorage.token) {
+  setAuthToken(localStorage.token);
+}
 
 function App() {
+  const { loading, isLoggingIn } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading || showSplash || isLoggingIn) {
+    return <SplashScreen />;
+  }
+
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        }
-      />
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
       {/* Protected Routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Transactions />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions/new"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <AddTransaction />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/categories"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Categories />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Reports />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/budgets"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Budgets />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/recurring"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <RecurringTransactions />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/dashboard" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+      <Route path="/transactions" element={<ProtectedRoute><MainLayout><Transactions /></MainLayout></ProtectedRoute>} />
+      <Route path="/transactions/new" element={<ProtectedRoute><MainLayout><AddTransaction /></MainLayout></ProtectedRoute>} />
+      <Route path="/categories" element={<ProtectedRoute><MainLayout><Categories /></MainLayout></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><MainLayout><Reports /></MainLayout></ProtectedRoute>} />
+      <Route path="/budgets" element={<ProtectedRoute><MainLayout><Budgets /></MainLayout></ProtectedRoute>} />
+      <Route path="/investments" element={<ProtectedRoute><MainLayout><Investments /></MainLayout></ProtectedRoute>} />
+      <Route path="/recurring-transactions" element={<ProtectedRoute><MainLayout><RecurringTransactions /></MainLayout></ProtectedRoute>} />
+      <Route path="/sms-sync" element={<ProtectedRoute><MainLayout><SmsSync /></MainLayout></ProtectedRoute>} />
+      
 
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

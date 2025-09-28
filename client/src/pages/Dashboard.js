@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+ import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { 
@@ -8,12 +9,18 @@ import {
   ExclamationTriangleIcon,
   PlusIcon,
   ArrowPathIcon,
-  ChartBarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+
   CurrencyDollarIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
+import FinancialChart from '../components/FinancialChart';
+import Calendar from 'react-calendar';
+import '../Calendar.css';
 
 const Dashboard = () => {
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [monthlySummary, setMonthlySummary] = useState(null);
@@ -21,33 +28,47 @@ const Dashboard = () => {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [budgetAlerts, setBudgetAlerts] = useState([]);
   const [upcomingRecurring, setUpcomingRecurring] = useState([]);
+  const [performanceData, setPerformanceData] = useState([]);
+  const [calendarDate, setCalendarDate] = useState(new Date());
+    const [transactionsForSelectedDate, setTransactionsForSelectedDate] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]);
+  const [datesWithTransactions, setDatesWithTransactions] = useState(new Set());
+
+
+  const [viewedMonth, setViewedMonth] = useState(new Date().getMonth() + 1);
+  const [viewedYear, setViewedYear] = useState(new Date().getFullYear());
   
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1;
-  const currentYear = currentDate.getFullYear();
+
+
+  const { loading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (authLoading) return; // Wait for auth to finish loading
       try {
         setLoading(true);
+        const cacheBuster = `&_=${new Date().getTime()}`;
         
-        const summaryResponse = await axios.get(`/api/transactions/summary/monthly?year=${currentYear}&month=${currentMonth}`);
+        const summaryResponse = await api.get(`/api/transactions/summary/monthly?year=${viewedYear}&month=${viewedMonth}${cacheBuster}`);
         setMonthlySummary(summaryResponse.data.data || null);
         
-        const categoryResponse = await axios.get(`/api/transactions/summary/category?year=${currentYear}&month=${currentMonth}`);
+        const categoryResponse = await api.get(`/api/transactions/summary/category?year=${viewedYear}&month=${viewedMonth}${cacheBuster}`);
         setCategorySummary(categoryResponse.data.data || []);
         
-        const transactionsResponse = await axios.get('/api/transactions?limit=5');
+        const transactionsResponse = await api.get(`/api/transactions?limit=5${cacheBuster}`);
         setRecentTransactions(transactionsResponse.data.data || []);
         
-        const budgetResponse = await axios.get(`/api/budgets/progress?year=${currentYear}&month=${currentMonth}`);
+        const budgetResponse = await api.get(`/api/budgets/progress?year=${viewedYear}&month=${viewedMonth}${cacheBuster}`);
         const alerts = (budgetResponse.data.data || []).filter(budget => 
           (budget.percentage >= 80 && budget.percentage < 100) || budget.percentage > 100
         );
         setBudgetAlerts(alerts);
         
-        const recurringResponse = await axios.get('/api/recurring-transactions?active=true&limit=3');
+        const recurringResponse = await api.get(`/api/recurring-transactions?active=true&limit=3${cacheBuster}`);
         setUpcomingRecurring(recurringResponse.data.data || []);
+
+        const performanceResponse = await api.get(`/api/transactions/summary/performance?year=${viewedYear}${cacheBuster}`);
+        setPerformanceData(performanceResponse.data.data || []);
         
         setLoading(false);
       } catch (err) {
@@ -58,7 +79,52 @@ const Dashboard = () => {
     };
     
     fetchDashboardData();
-  }, [currentMonth, currentYear]);
+  }, [viewedMonth, viewedYear, authLoading]);
+
+  const handlePrevMonth = () => {
+    setViewedMonth(prevMonth => {
+      if (prevMonth === 1) {
+        setViewedYear(prevYear => prevYear - 1);
+        return 12;
+      }
+      return prevMonth - 1;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setViewedMonth(prevMonth => {
+      if (prevMonth === 12) {
+        setViewedYear(prevYear => prevYear + 1);
+        return 1;
+      }
+      return prevMonth + 1;
+    });
+  };
+
+  useEffect(() => {
+    const fetchAllTransactions = async () => {
+      try {
+        const response = await api.get('/api/transactions');
+        const transactions = response.data.data || [];
+        setAllTransactions(transactions);
+        const dates = new Set(transactions.map(t => format(new Date(t.date), 'yyyy-MM-dd')));
+        setDatesWithTransactions(dates);
+      } catch (err) {
+        console.error('Error fetching all transactions:', err);
+      }
+    };
+    fetchAllTransactions();
+  }, []);
+
+  useEffect(() => {
+    if (calendarDate) {
+      const formattedDate = format(calendarDate, 'yyyy-MM-dd');
+      const filtered = allTransactions.filter(transaction => {
+        return format(new Date(transaction.date), 'yyyy-MM-dd') === formattedDate;
+      });
+      setTransactionsForSelectedDate(filtered);
+    }
+  }, [calendarDate, allTransactions]);
 
   if (loading) {
     return (
@@ -90,7 +156,15 @@ const Dashboard = () => {
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-[#0B1F3A]">Financial Dashboard</h1>
-            
+            <div className="flex items-center mt-2">
+              <button onClick={handlePrevMonth} className="p-1 rounded-md bg-gray-200 hover:bg-gray-300">
+                <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
+              </button>
+              <h2 className="text-xl font-semibold mx-4">{format(new Date(viewedYear, viewedMonth - 1), 'MMMM yyyy')}</h2>
+              <button onClick={handleNextMonth} className="p-1 rounded-md bg-gray-200 hover:bg-gray-300">
+                <ChevronRightIcon className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
           </div>
           
         </div>
@@ -165,18 +239,11 @@ const Dashboard = () => {
               <div className="px-6 py-5 border-b border-[#ECEFF1] flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-[#0B1F3A]">Financial Overview</h3>
                 <div className="flex space-x-2">
-                  <button className="px-3 py-1 text-sm bg-[#ECEFF1] rounded-lg text-[#0B1F3A]">Month</button>
-                  <button className="px-3 py-1 text-sm hover:bg-[#ECEFF1] rounded-lg text-[#0B1F3A]">Quarter</button>
-                  <button className="px-3 py-1 text-sm hover:bg-[#ECEFF1] rounded-lg text-[#0B1F3A]">Year</button>
+                  <button className="px-3 py-1 text-sm bg-[#ECEFF1] rounded-lg text-[#0B1F3A]">Year</button>
                 </div>
               </div>
               <div className="p-6">
-                <div className="h-64 bg-[#F5F7FA] rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <ChartBarIcon className="mx-auto h-12 w-12 text-[#CFD8DC]" />
-                    <p className="mt-2 text-sm text-[#607D8B]">Performance chart will appear here</p>
-                  </div>
-                </div>
+                <FinancialChart data={performanceData} />
               </div>
             </div>
 
@@ -237,6 +304,48 @@ const Dashboard = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Calendar */}
+            <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
+              <div className="px-6 py-5 border-b border-[#ECEFF1]">
+                <h3 className="text-lg font-semibold text-[#0B1F3A]">Calendar</h3>
+              </div>
+              <div className="p-6">
+                <Calendar
+                  onChange={setCalendarDate}
+                  value={calendarDate}
+                  className="w-full border-none"
+                  tileContent={({ date, view }) => {
+                    if (view === 'month') {
+                      const formattedDate = format(date, 'yyyy-MM-dd');
+                      if (datesWithTransactions.has(formattedDate)) {
+                        return <div className="h-1.5 w-1.5 bg-blue-500 rounded-full mx-auto"></div>;
+                      }
+                    }
+                    return null;
+                  }}
+                />
+              </div>
+              {transactionsForSelectedDate.length > 0 && (
+                <div className="p-6 border-t border-[#ECEFF1]">
+                  <h4 className="text-md font-semibold text-[#0B1F3A] mb-4">
+                    Transactions for {format(calendarDate, 'MMMM d, yyyy')}
+                  </h4>
+                  <div className="space-y-4">
+                    {transactionsForSelectedDate.map((transaction) => (
+                      <div key={transaction._id} className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-[#0B1F3A]">{transaction.description}</p>
+                          <p className="text-sm text-[#607D8B]">{transaction.category.name}</p>
+                        </div>
+                        <p className={`font-semibold ${transaction.type === 'income' ? 'text-[#2ECC71]' : 'text-red-600'}`}>
+                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Budget Alerts */}
             {budgetAlerts.length > 0 && (
               <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
@@ -293,14 +402,14 @@ const Dashboard = () => {
                 {categorySummary.length > 0 ? (
                   <div className="space-y-5">
                     {categorySummary.slice(0, 5).map((category) => (
-                      <div key={category.categoryId} className="relative">
+                      <div key={category._id} className="relative">
                         <div className="flex justify-between mb-1">
                           <div>
-                            <span className="text-sm font-medium text-[#0B1F3A]">{category.categoryName}</span>
+                            <span className="text-sm font-medium text-[#0B1F3A]">{category.name}</span>
                           </div>
                           <div>
                             <span className="text-sm font-medium text-[#0B1F3A]">
-                              ${category.amount?.toFixed(2) || '0.00'}
+                              ${category.totalAmount?.toFixed(2) || '0.00'}
                             </span>
                           </div>
                         </div>
