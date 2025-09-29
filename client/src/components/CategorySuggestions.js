@@ -72,9 +72,9 @@ const CategorySuggestions = ({ onCategoriesAdded, existingCategories = [] }) => 
       );
       setSuggestions(availableSuggestions);
       setLoading(false);
+      toast.success('Category suggestions loaded successfully!');
     } catch (error) {
       console.error('Error fetching category suggestions:', error);
-      toast.error('Failed to load category suggestions');
       setLoading(false);
     }
   }, [existingCategories]);

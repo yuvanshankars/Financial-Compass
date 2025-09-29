@@ -48,6 +48,7 @@ const Budgets = () => {
       setCategories(response.data.data);
     } catch (err) {
       console.error('Error fetching categories:', err.response ? err.response.data : err.message);
+      toast.error('Failed to load categories');
     }
   };
 
