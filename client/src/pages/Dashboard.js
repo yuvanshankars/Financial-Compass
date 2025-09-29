@@ -178,7 +178,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-[#607D8B] uppercase tracking-wider">Income</p>
                   <h2 className="mt-1 text-2xl font-bold text-[#0B1F3A]">
-                    ${monthlySummary?.totalIncome?.toFixed(2) || '0.00'}
+                    ₹{monthlySummary?.totalIncome?.toFixed(2) || '0.00'}
                   </h2>
                 </div>
                 <div className="bg-[#2ECC71]/10 p-3 rounded-lg">
@@ -198,7 +198,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-[#607D8B] uppercase tracking-wider">Expenses</p>
                   <h2 className="mt-1 text-2xl font-bold text-[#0B1F3A]">
-                    ${monthlySummary?.totalExpense?.toFixed(2) || '0.00'}
+                    ₹{monthlySummary?.totalExpense?.toFixed(2) || '0.00'}
                   </h2>
                 </div>
                 <div className="bg-red-100 p-3 rounded-lg">
@@ -218,7 +218,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-white/90 uppercase tracking-wider">Net Worth</p>
                   <h2 className={`mt-1 text-2xl font-bold ${monthlySummary?.balance >= 0 ? 'text-white' : 'text-red-300'}`}>
-                    ${monthlySummary?.balance?.toFixed(2) || '0.00'}
+                    ₹{monthlySummary?.balance?.toFixed(2) || '0.00'}
                   </h2>
                 </div>
                 <div className="bg-white/20 p-3 rounded-lg">
@@ -279,7 +279,7 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className={`text-base font-medium ${transaction.type === 'expense' ? 'text-red-600' : 'text-[#2ECC71]'}`}>
-                          {transaction.type === 'expense' ? '-' : '+'}${transaction.amount?.toFixed(2) || '0.00'}
+                          {transaction.type === 'expense' ? '-' : '+'}₹{transaction.amount?.toFixed(2) || '0.00'}
                         </div>
                       </div>
                     </div>
@@ -338,7 +338,7 @@ const Dashboard = () => {
                           <p className="text-sm text-[#607D8B]">{transaction.category.name}</p>
                         </div>
                         <p className={`font-semibold ${transaction.type === 'income' ? 'text-[#2ECC71]' : 'text-red-600'}`}>
-                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                          {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
                         </p>
                       </div>
                     ))}
@@ -362,7 +362,7 @@ const Dashboard = () => {
                           </div>
                           <div>
                             <span className={`text-sm font-medium ${budget.percentage > 100 ? 'text-red-600' : 'text-[#D4AF37]'}`}>
-                              ${budget.spent?.toFixed(2) || '0.00'} / ${budget.amount?.toFixed(2) || '0.00'}
+                              ₹{budget.spent?.toFixed(2) || '0.00'} / ₹{budget.amount?.toFixed(2) || '0.00'}
                             </span>
                           </div>
                         </div>
@@ -375,7 +375,7 @@ const Dashboard = () => {
                         <div className="mt-1 text-xs text-[#607D8B] flex justify-between">
                           <span>{budget.percentage?.toFixed(0) || '0'}% spent</span>
                           {budget.percentage > 100 && (
-                            <span className="text-red-600">Exceeded by ${(budget.spent - budget.amount).toFixed(2)}</span>
+                            <span className="text-red-600">Exceeded by ₹{(budget.spent - budget.amount).toFixed(2)}</span>
                           )}
                         </div>
                       </div>
@@ -409,7 +409,7 @@ const Dashboard = () => {
                           </div>
                           <div>
                             <span className="text-sm font-medium text-[#0B1F3A]">
-                              ${category.totalAmount?.toFixed(2) || '0.00'}
+                              ₹{category.totalAmount?.toFixed(2) || '0.00'}
                             </span>
                           </div>
                         </div>

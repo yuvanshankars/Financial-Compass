@@ -20,6 +20,7 @@ import Reports from './pages/Reports';
 import Budgets from './pages/Budgets';
 import Investments from './pages/Investments';
 import RecurringTransactions from './pages/RecurringTransactions';
+import FinancialGoals from './pages/FinancialGoals';
 import SmsSync from './pages/SmsSync';
 import NotFound from './pages/NotFound';
 import SplashScreen from './components/SplashScreen';
@@ -73,6 +74,7 @@ function App() {
       <Route path="/budgets" element={<ProtectedRoute><MainLayout><Budgets /></MainLayout></ProtectedRoute>} />
       <Route path="/investments" element={<ProtectedRoute><MainLayout><Investments /></MainLayout></ProtectedRoute>} />
       <Route path="/recurring-transactions" element={<ProtectedRoute><MainLayout><RecurringTransactions /></MainLayout></ProtectedRoute>} />
+      <Route path="/financial-goals" element={<ProtectedRoute><MainLayout><FinancialGoals /></MainLayout></ProtectedRoute>} />
       <Route path="/sms-sync" element={<ProtectedRoute><MainLayout><SmsSync /></MainLayout></ProtectedRoute>} />
       
 

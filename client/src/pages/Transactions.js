@@ -382,7 +382,7 @@ const Transactions = () => {
                       <div className="flex items-center">
                         <div className="mr-4 text-right">
                           <div className={`text-sm font-medium ${transaction.type === 'expense' ? 'text-red-600' : 'text-[#2ECC71]'}`}>
-                            {transaction.type === 'expense' ? '-' : '+'}${transaction.amount.toFixed(2)}
+                            {transaction.type === 'expense' ? '-' : '+'}₹{transaction.amount.toFixed(2)}
                           </div>
                           {transaction.type === 'expense' && transaction.category?.budget && (
                             <div className="text-xs text-[#607D8B]">

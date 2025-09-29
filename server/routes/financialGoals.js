@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const { getFinancialGoals, addFinancialGoal, updateFinancialGoal, deleteFinancialGoal } = require('../controllers/financialGoals');
+const { protect } = require('../middleware/auth');
 
-// @route   GET api/financial-goals
-// @desc    Get all financial goals
-// @access  Private
-router.get('/', (req, res) => {
-  res.send('Financial goals route');
-});
+router.route('/')
+  .get(protect, getFinancialGoals)
+  .post(protect, addFinancialGoal);
+
+router.route('/:id')
+  .put(protect, updateFinancialGoal)
+  .delete(protect, deleteFinancialGoal);
 
 module.exports = router;
