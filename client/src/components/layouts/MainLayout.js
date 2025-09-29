@@ -34,7 +34,7 @@ const MainLayout = ({ children }) => {
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
     { name: 'Budgets', href: '/budgets', icon: CurrencyDollarIcon },
     { name: 'Recurring', href: '/recurring-transactions', icon: ArrowPathIcon },
-    { name: 'Financial Goals', href: '/financial-goals', icon: TrophyIcon },
+
     { name: 'Investments', href: '/investments', icon: BanknotesIcon },
     { name: 'Add from SMS', href: '/sms-sync', icon: ChatBubbleBottomCenterTextIcon }
   ];
