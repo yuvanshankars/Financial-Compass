@@ -5,7 +5,7 @@ import api from './api';
  * @returns {Promise} Promise with the response data
  */
 export const getCategories = async () => {
-  const response = await api.get('/categories');
+  const response = await api.get('/api/categories');
   return response.data;
 };
 
@@ -15,7 +15,7 @@ export const getCategories = async () => {
  * @returns {Promise} Promise with the response data
  */
 export const getCategory = async (id) => {
-  const response = await api.get(`/categories/${id}`);
+  const response = await api.get(`/api/categories/${id}`);
   return response.data;
 };
 
@@ -28,7 +28,7 @@ export const getCategory = async (id) => {
  * @returns {Promise} Promise with the response data
  */
 export const createCategory = async (categoryData) => {
-  const response = await api.post('/categories', categoryData);
+  const response = await api.post('/api/categories', categoryData);
   return response.data;
 };
 
@@ -39,7 +39,7 @@ export const createCategory = async (categoryData) => {
  * @returns {Promise} Promise with the response data
  */
 export const updateCategory = async (id, categoryData) => {
-  const response = await api.put(`/categories/${id}`, categoryData);
+  const response = await api.put(`/api/categories/${id}`, categoryData);
   return response.data;
 };
 
@@ -49,7 +49,7 @@ export const updateCategory = async (id, categoryData) => {
  * @returns {Promise} Promise with the response data
  */
 export const deleteCategory = async (id) => {
-  const response = await api.delete(`/categories/${id}`);
+  const response = await api.delete(`/api/categories/${id}`);
   return response.data;
 };
 
@@ -58,7 +58,7 @@ export const deleteCategory = async (id) => {
  * @returns {Promise} Promise with the response data
  */
 export const getCategorySuggestions = async () => {
-  const response = await api.get('/categories/suggestions');
+  const response = await api.get('/api/categories/suggestions');
   return response.data;
 };
 
@@ -69,7 +69,7 @@ export const getCategorySuggestions = async () => {
  */
 export const createMultipleCategories = async (categoriesData) => {
   const promises = categoriesData.map(categoryData => 
-    api.post('/categories', categoryData)
+    api.post('/api/categories', categoryData)
   );
   const responses = await Promise.allSettled(promises);
   

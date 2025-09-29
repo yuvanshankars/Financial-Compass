@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 
 const FinancialGoals = () => {
   const [goals, setGoals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
   const [formData, setFormData] = useState({
@@ -14,11 +15,14 @@ const FinancialGoals = () => {
   });
 
   const fetchGoals = useCallback(async () => {
+    setIsLoading(true);
     try {
       const res = await getFinancialGoals();
       setGoals(res.data.data);
     } catch (error) {
-      toast.error('Failed to fetch financial goals');
+      toast.error(error.response?.data?.message || 'Failed to fetch financial goals');
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -33,19 +37,25 @@ const FinancialGoals = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const goalData = {
+      ...formData,
+      targetAmount: Number(formData.targetAmount),
+      currentAmount: Number(formData.currentAmount) || 0,
+    };
+
     try {
       if (editingGoal) {
-        await updateFinancialGoal(editingGoal._id, formData);
+        await updateFinancialGoal(editingGoal._id, goalData);
         toast.success('Financial goal updated successfully');
       } else {
-        await addFinancialGoal(formData);
+        await addFinancialGoal(goalData);
         toast.success('Financial goal added successfully');
       }
       fetchGoals();
       setIsModalOpen(false);
       setEditingGoal(null);
     } catch (error) {
-      toast.error(`Failed to ${editingGoal ? 'update' : 'add'} financial goal`);
+      toast.error(error.response?.data?.message || `Failed to ${editingGoal ? 'update' : 'add'} financial goal`);
     }
   };
 
@@ -71,6 +81,36 @@ const FinancialGoals = () => {
     setIsModalOpen(true);
   };
 
+  const handleDelete = async (goalId) => {
+    if (window.confirm('Are you sure you want to delete this financial goal?')) {
+      try {
+        await deleteFinancialGoal(goalId);
+        fetchGoals();
+        toast.success('Financial goal deleted successfully');
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete financial goal');
+      }
+    }
+  };
+
+  const renderGoalProgress = (goal) => {
+    const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 mt-2">
+        <div
+          className="bg-green-500 h-4 rounded-full text-xs font-medium text-blue-100 text-center p-0.5 leading-none"
+          style={{ width: `${percentage}%` }}
+        >
+          {percentage.toFixed(2)}%
+        </div>
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -95,9 +135,9 @@ const FinancialGoals = () => {
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">{editingGoal ? 'Edit' : 'Add'} Financial Goal</h3>
                   <div className="mt-2">
-                    <input type="text" name="name" placeholder="Goal Name" value={formData.name} onChange={handleInputChange} className="w-full p-2 border rounded" />
-                    <input type="number" name="targetAmount" placeholder="Target Amount" value={formData.targetAmount} onChange={handleInputChange} className="w-full p-2 border rounded mt-2" />
-                    {editingGoal && <input type="number" name="currentAmount" placeholder="Current Amount" value={formData.currentAmount} onChange={handleInputChange} className="w-full p-2 border rounded mt-2" />}
+                    <input type="text" name="name" placeholder="Goal Name" value={formData.name} onChange={handleInputChange} className="w-full p-2 border rounded" required />
+                    <input type="number" name="targetAmount" placeholder="Target Amount" value={formData.targetAmount} onChange={handleInputChange} className="w-full p-2 border rounded mt-2" required />
+                    <input type="number" name="currentAmount" placeholder="Current Amount" value={formData.currentAmount} onChange={handleInputChange} className="w-full p-2 border rounded mt-2" />
                     <input type="date" name="targetDate" value={formData.targetDate} onChange={handleInputChange} className="w-full p-2 border rounded mt-2" />
                   </div>
                 </div>
@@ -115,41 +155,35 @@ const FinancialGoals = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {goals.map(goal => (
-          <div key={goal._id} className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold">{goal.name}</h2>
-            <p>Target: ₹{goal.targetAmount}</p>
-            <p>Saved: ₹{goal.currentAmount}</p>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-              <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${(goal.currentAmount / goal.targetAmount) * 100}%` }}></div>
+      {goals.length === 0 ? (
+        <p>No financial goals set yet. Add one to get started!</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {goals.map(goal => (
+            <div key={goal._id} className="bg-white p-4 rounded-lg shadow">
+              <h2 className="text-xl font-bold">{goal.name}</h2>
+              <p>Target: ₹{goal.targetAmount.toLocaleString()}</p>
+              <p>Saved: ₹{goal.currentAmount.toLocaleString()}</p>
+              {renderGoalProgress(goal)}
+              <p className="text-sm text-gray-500 mt-2">Target Date: {new Date(goal.targetDate).toLocaleDateString()}</p>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => openEditModal(goal)}
+                  className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(goal._id)}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-            <p className="text-sm text-gray-500">Target Date: {new Date(goal.targetDate).toLocaleDateString()}</p>
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => openEditModal(goal)}
-                className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2"
-              >
-                Edit
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    await deleteFinancialGoal(goal._id);
-                    fetchGoals();
-                    toast.success('Financial goal deleted successfully');
-                  } catch (error) {
-                    toast.error('Failed to delete financial goal');
-                  }
-                }}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

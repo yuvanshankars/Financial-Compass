@@ -17,12 +17,12 @@ exports.getFinancialGoals = async (req, res) => {
 // @access  Private
 exports.addFinancialGoal = async (req, res) => {
   try {
-    const { name, targetAmount, targetDate } = req.body;
+    const { name, targetAmount, currentAmount, targetDate } = req.body;
     const financialGoal = await FinancialGoal.create({
       user: req.user.id,
       name,
       targetAmount,
-      currentAmount: 0,
+      currentAmount: currentAmount || 0,
       targetDate,
     });
     res.status(201).json({ success: true, data: financialGoal });
@@ -36,8 +36,7 @@ exports.addFinancialGoal = async (req, res) => {
 // @access  Private
 exports.updateFinancialGoal = async (req, res) => {
   try {
-    const { name, targetAmount, currentAmount, targetDate, isAchieved } = req.body;
-    let financialGoal = await FinancialGoal.findById(req.params.id);
+    const financialGoal = await FinancialGoal.findById(req.params.id);
 
     if (!financialGoal) {
       return res.status(404).json({ success: false, error: 'Financial goal not found' });
@@ -47,12 +46,24 @@ exports.updateFinancialGoal = async (req, res) => {
       return res.status(401).json({ success: false, error: 'Not authorized' });
     }
 
-    financialGoal = await FinancialGoal.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const { name, targetAmount, currentAmount, targetDate, isAchieved } = req.body;
+    const updateFields = {};
+    if (name !== undefined) updateFields.name = name;
+    if (targetAmount !== undefined) updateFields.targetAmount = targetAmount;
+    if (currentAmount !== undefined) updateFields.currentAmount = currentAmount;
+    if (targetDate !== undefined) updateFields.targetDate = targetDate;
+    if (isAchieved !== undefined) updateFields.isAchieved = isAchieved;
 
-    res.status(200).json({ success: true, data: financialGoal });
+    const updatedGoal = await FinancialGoal.findByIdAndUpdate(
+      req.params.id,
+      updateFields,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({ success: true, data: updatedGoal });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
   }
@@ -73,7 +84,7 @@ exports.deleteFinancialGoal = async (req, res) => {
       return res.status(401).json({ success: false, error: 'Not authorized' });
     }
 
-    await financialGoal.remove();
+    await financialGoal.deleteOne();
 
     res.status(200).json({ success: true, data: {} });
   } catch (error) {
