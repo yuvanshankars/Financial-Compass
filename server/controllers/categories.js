@@ -8,9 +8,16 @@ const { getDefaultCategorySuggestions } = require('../utils/seedCategories');
 // @access  Private
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ user: req.user.id }).sort({
+    let categories = await Category.find({ user: req.user.id }).sort({
       name: 1
     });
+
+    // If no categories, create default ones
+    if (categories.length === 0) {
+      const defaultCategories = getDefaultCategorySuggestions().map(c => ({ ...c, user: req.user.id }));
+      await Category.insertMany(defaultCategories);
+      categories = await Category.find({ user: req.user.id }).sort({ name: 1 });
+    }
 
     res.status(200).json({
       success: true,
