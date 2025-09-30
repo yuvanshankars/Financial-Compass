@@ -624,13 +624,13 @@ const Reports = () => {
                               {monthNames[(item?.month || index + 1) - 1]}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#2ECC71]">
-                              ${(item?.totalIncome || 0).toFixed(2)}
+                              ₹{(item?.totalIncome || 0).toFixed(2)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#EB5757]">
-                              ${(item?.totalExpense || 0).toFixed(2)}
+                              ₹{(item?.totalExpense || 0).toFixed(2)}
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm ${(item?.balance || 0) >= 0 ? 'text-[#2ECC71]' : 'text-[#EB5757]'}`}>
-                              ${(item?.balance || 0).toFixed(2)}
+                              ₹{(item?.balance || 0).toFixed(2)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#607D8B]">
                               {item?.transactionCount || 0}
@@ -677,7 +677,7 @@ const Reports = () => {
                                   <span className="text-sm font-medium text-[#0B1F3A]">{category.name}</span>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-[#0B1F3A]">${category.totalAmount.toFixed(2)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-[#0B1F3A]">₹{category.totalAmount.toFixed(2)}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-[#0B1F3A]">{category.percentage.toFixed(1)}%</td>
                             </tr>
                           ))}
@@ -710,19 +710,19 @@ const Reports = () => {
                         <div>
                           <p className="text-sm text-[#607D8B]">Total Income</p>
                           <p className="text-xl font-semibold text-[#2ECC71]">
-                            ${yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.totalIncome || 0), 0).toFixed(2)}
+                            ₹{yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.totalIncome || 0), 0).toFixed(2)}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-[#607D8B]">Total Expenses</p>
                           <p className="text-xl font-semibold text-[#EB5757]">
-                            ${yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.totalExpense || 0), 0).toFixed(2)}
+                            ₹{yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.totalExpense || 0), 0).toFixed(2)}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-[#607D8B]">Net Balance</p>
                           <p className={`text-xl font-semibold ${yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.balance || 0), 0) >= 0 ? 'text-[#2ECC71]' : 'text-[#EB5757]'}`}>
-                            ${yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.balance || 0), 0).toFixed(2)}
+                            ₹{yearlyComparison.currentYear.reduce((sum, item) => sum + (item?.balance || 0), 0).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -736,19 +736,19 @@ const Reports = () => {
                         <div>
                           <p className="text-sm text-[#607D8B]">Total Income</p>
                           <p className="text-xl font-semibold text-[#2ECC71]">
-                            ${yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.totalIncome || 0), 0).toFixed(2)}
+                            ₹{yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.totalIncome || 0), 0).toFixed(2)}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-[#607D8B]">Total Expenses</p>
                           <p className="text-xl font-semibold text-[#EB5757]">
-                            ${yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.totalExpense || 0), 0).toFixed(2)}
+                            ₹{yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.totalExpense || 0), 0).toFixed(2)}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-[#607D8B]">Net Balance</p>
                           <p className={`text-xl font-semibold ${yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.balance || 0), 0) >= 0 ? 'text-[#2ECC71]' : 'text-[#EB5757]'}`}>
-                            ${yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.balance || 0), 0).toFixed(2)}
+                            ₹{yearlyComparison.prevYear.reduce((sum, item) => sum + (item?.balance || 0), 0).toFixed(2)}
                           </p>
                         </div>
                       </div>
