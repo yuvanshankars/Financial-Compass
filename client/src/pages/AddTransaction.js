@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import DatePicker from 'react-datepicker';
+
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const AddTransaction = () => {
@@ -16,7 +16,8 @@ const AddTransaction = () => {
     type: 'expense',
     category: '',
     date: new Date(),
-    notes: ''
+    notes: '',
+    paymentMethod: ''
   });
 
   // Fetch categories on component mount
@@ -225,12 +226,12 @@ const AddTransaction = () => {
               <label className="block text-sm font-medium text-[#0B1F3A] mb-1">
                 Date *
               </label>
-              <DatePicker
-                selected={formData.date}
-                onChange={handleDateChange}
-                dateFormat="MMMM d, yyyy"
+              <input
+                type="date"
+                value={formData.date.toISOString().split('T')[0]}
+                onChange={(e) => handleDateChange(new Date(e.target.value))}
                 className="block w-full border border-[#CFD8DC] rounded-lg py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-colors"
-                maxDate={new Date()}
+                max={new Date().toISOString().split('T')[0]}
               />
             </div>
 

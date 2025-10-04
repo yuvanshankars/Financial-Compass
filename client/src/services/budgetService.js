@@ -7,7 +7,7 @@ import api from './api';
  * @returns {Promise} Promise with the response data
  */
 export const getBudgets = async (params = {}) => {
-  const response = await api.get('/budgets', { params });
+  const response = await api.get('/api/budgets', { params });
   return response.data;
 };
 
@@ -17,7 +17,7 @@ export const getBudgets = async (params = {}) => {
  * @returns {Promise} Promise with the response data
  */
 export const getBudget = async (id) => {
-  const response = await api.get(`/budgets/${id}`);
+  const response = await api.get(`/api/budgets/${id}`);
   return response.data;
 };
 
@@ -30,7 +30,7 @@ export const getBudget = async (id) => {
  * @returns {Promise} Promise with the response data
  */
 export const createBudget = async (budgetData) => {
-  const response = await api.post('/budgets', budgetData);
+  const response = await api.post('/api/budgets', budgetData);
   return response.data;
 };
 
@@ -41,7 +41,7 @@ export const createBudget = async (budgetData) => {
  * @returns {Promise} Promise with the response data
  */
 export const updateBudget = async (id, budgetData) => {
-  const response = await api.put(`/budgets/${id}`, budgetData);
+  const response = await api.put(`/api/budgets/${id}`, budgetData);
   return response.data;
 };
 
@@ -51,7 +51,7 @@ export const updateBudget = async (id, budgetData) => {
  * @returns {Promise} Promise with the response data
  */
 export const deleteBudget = async (id) => {
-  const response = await api.delete(`/budgets/${id}`);
+  const response = await api.delete(`/api/budgets/${id}`);
   return response.data;
 };
 
@@ -62,6 +62,6 @@ export const deleteBudget = async (id) => {
  * @returns {Promise} Promise with the response data
  */
 export const getBudgetProgress = async (params = {}) => {
-  const response = await api.get('/budgets/progress', { params });
+  const response = await api.get('/api/budgets/progress', { params });
   return response.data;
 };

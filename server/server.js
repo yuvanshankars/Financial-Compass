@@ -14,9 +14,13 @@ const budgetRoutes = require('./routes/budgets');
 const recurringTransactionRoutes = require('./routes/recurringTransactions');
 const smsRoutes = require('./routes/sms');
 const investmentRoutes = require('./routes/investmentRoutes');
-const financialGoalRoutes = require('./routes/financialGoals');
+// const financialGoalRoutes = require('./routes/financialGoals');
 
 // Initialize express app
+const { protect } = require('./middleware/auth');
+
+require('./cron');
+
 const app = express();
 
 // app.use(helmet.contentSecurityPolicy(({
@@ -49,7 +53,7 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/investments', investmentRoutes);
-app.use('/api/financial-goals', financialGoalRoutes);
+// app.use('/api/financial-goals', financialGoalRoutes);
 
 // Catch-all route for debugging
 app.use((req, res, next) => {

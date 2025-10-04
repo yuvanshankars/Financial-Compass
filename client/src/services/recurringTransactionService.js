@@ -5,14 +5,14 @@ export const getRecurringTransactions = async () => {
   return response.data;
 };
 
-export const addRecurringTransaction = async (transactionData) => {
-  const response = await api.post('/api/recurring-transactions', transactionData);
+export const addRecurringTransaction = async (data) => {
+  const response = await api.post('/api/recurring-transactions', data);
   return response.data;
 };
 
-export const updateRecurringTransaction = async (id, transactionData) => {
-  const response = await api.put(`/api/recurring-transactions/${id}`, transactionData);
-  return response.data;
+export const updateRecurringTransaction = async (id, data) => {
+  const res = await api.put(`/api/recurring-transactions/${id}`, data);
+  return res.data;
 };
 
 export const deleteRecurringTransaction = async (id) => {

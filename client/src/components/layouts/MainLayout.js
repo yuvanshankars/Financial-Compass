@@ -17,7 +17,7 @@ import {
   BanknotesIcon,
   ChatBubbleBottomCenterTextIcon,
   ChatBubbleOvalLeftEllipsisIcon,
-  TrophyIcon
+  
 } from '@heroicons/react/24/outline';
 
 const MainLayout = ({ children }) => {

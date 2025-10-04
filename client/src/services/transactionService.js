@@ -14,7 +14,7 @@ import api from './api';
  * @returns {Promise} Promise with the response data
  */
 export const getTransactions = async (params = {}) => {
-  const response = await api.get('/transactions', { params });
+  const response = await api.get('/api/transactions', { params });
   return response.data;
 };
 
@@ -24,7 +24,7 @@ export const getTransactions = async (params = {}) => {
  * @returns {Promise} Promise with the response data
  */
 export const getTransaction = async (id) => {
-  const response = await api.get(`/transactions/${id}`);
+  const response = await api.get(`/api/transactions/${id}`);
   return response.data;
 };
 
@@ -34,7 +34,7 @@ export const getTransaction = async (id) => {
  * @returns {Promise} Promise with the response data
  */
 export const createTransaction = async (transactionData) => {
-  const response = await api.post('/transactions', transactionData);
+  const response = await api.post('/api/transactions', transactionData);
   return response.data;
 };
 
@@ -45,7 +45,7 @@ export const createTransaction = async (transactionData) => {
  * @returns {Promise} Promise with the response data
  */
 export const updateTransaction = async (id, transactionData) => {
-  const response = await api.put(`/transactions/${id}`, transactionData);
+  const response = await api.put(`/api/transactions/${id}`, transactionData);
   return response.data;
 };
 
@@ -55,7 +55,7 @@ export const updateTransaction = async (id, transactionData) => {
  * @returns {Promise} Promise with the response data
  */
 export const deleteTransaction = async (id) => {
-  const response = await api.delete(`/transactions/${id}`);
+  const response = await api.delete(`/api/transactions/${id}`);
   return response.data;
 };
 
@@ -67,6 +67,6 @@ export const deleteTransaction = async (id) => {
  * @returns {Promise} Promise with the response data
  */
 export const getTransactionStats = async (params = {}) => {
-  const response = await api.get('/transactions/stats', { params });
+  const response = await api.get('/api/transactions/stats', { params });
   return response.data;
 };

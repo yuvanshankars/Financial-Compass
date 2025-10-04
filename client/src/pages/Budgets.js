@@ -243,7 +243,7 @@ const Budgets = () => {
                     </label>
                     <div className="relative rounded-lg shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-[#64748B]">$</span>
+                        <span className="text-[#64748B]">₹</span>
                       </div>
                       <input
                         type="number"
@@ -374,7 +374,7 @@ const Budgets = () => {
                       <div className="ml-4">
                         <h3 className="text-lg font-medium text-[#0B1F3A]">{budget.category.name}</h3>
                         <p className="text-sm text-[#64748B]">
-                          Budget: ${budget.budgetAmount.toFixed(2)}
+                          Budget: ₹{budget.budgetAmount.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -400,7 +400,7 @@ const Budgets = () => {
                         {budget.percentage.toFixed(0)}% spent
                       </span>
                       <span className="text-[#0B1F3A]">
-                        ${budget.spent.toFixed(2)} / ${budget.budgetAmount.toFixed(2)}
+                        ₹{budget.spent.toFixed(2)} / ₹{budget.budgetAmount.toFixed(2)}
                       </span>
                     </div>
                     <div className="w-full bg-[#ECEFF1] rounded-full h-2.5">
@@ -412,11 +412,11 @@ const Budgets = () => {
                     <div className="mt-2 text-sm">
                       {budget.remaining > 0 ? (
                         <span className="text-[#2ECC71]">
-                          ${budget.remaining.toFixed(2)} remaining
+                          ₹{budget.remaining.toFixed(2)} remaining
                         </span>
                       ) : (
                         <span className="text-[#EF4444]">
-                          ${Math.abs(budget.remaining).toFixed(2)} over budget
+                          ₹{Math.abs(budget.remaining).toFixed(2)} over budget
                         </span>
                       )}
                     </div>
