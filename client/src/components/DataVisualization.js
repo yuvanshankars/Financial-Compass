@@ -1,9 +1,9 @@
 import React from 'react';
 import FinancialHealthScore from './FinancialHealthScore';
 import CashFlowAnalysis from './CashFlowAnalysis';
-import ExpenseDistributionTreemap from './ExpenseDistributionTreemap';
 
-const DataVisualization = ({ monthlyTrend, categorySummary }) => {
+
+const DataVisualization = ({ monthlyTrend }) => {
   const totalIncome = monthlyTrend.reduce((sum, item) => sum + (item?.totalIncome || 0), 0);
   const totalExpenses = monthlyTrend.reduce((sum, item) => sum + (item?.totalExpense || 0), 0);
 
@@ -13,9 +13,6 @@ const DataVisualization = ({ monthlyTrend, categorySummary }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FinancialHealthScore income={totalIncome} expenses={totalExpenses} />
         <CashFlowAnalysis data={monthlyTrend} />
-      </div>
-      <div className="mt-6">
-        <ExpenseDistributionTreemap data={categorySummary} />
       </div>
     </div>
   );

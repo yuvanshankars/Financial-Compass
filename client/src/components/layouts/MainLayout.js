@@ -185,7 +185,7 @@ const MainLayout = ({ children }) => {
         <main className="flex-1">
           <div className="py-6">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="bg-white rounded-xl shadow border border-[#CFD8DC] p-6">
+              <div className="bg-white rounded-xl shadow border border-[#CFD8DC] p-4 sm:p-6">
                 {children}
               </div>
             </div>
@@ -201,7 +201,7 @@ const MainLayout = ({ children }) => {
           className="bg-[#0B1F3A] text-white rounded-full p-4 shadow-lg hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
           title="Add from SMS"
         >
-          <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
+          <ChatBubbleBottomCenterTextIcon className="h-6 w-6 sm:h-8 sm:w-8" />
         </Link>
 
         {/* Chatbot */}
@@ -210,7 +210,7 @@ const MainLayout = ({ children }) => {
           className="bg-[#0B1F3A] text-white rounded-full p-4 shadow-lg hover:bg-[#0B1F3A]/90 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
           title="Open Chatbot"
         >
-          <ChatBubbleOvalLeftEllipsisIcon className="h-8 w-8" />
+          <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 sm:h-8 sm:w-8" />
         </button>
       </div>
 

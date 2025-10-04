@@ -80,6 +80,21 @@ const Reports = () => {
         Balance: item?.balance || 0,
       }));
       data = [...currentYearRows, ...prevYearRows];
+    } else if (activeTab === 'visualization') {
+      headers = ['Metric', 'Value'];
+      const totalIncome = monthlyTrend.reduce((sum, item) => sum + (item?.totalIncome || 0), 0);
+      const totalExpenses = monthlyTrend.reduce((sum, item) => sum + (item?.totalExpense || 0), 0);
+      const score = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+
+      data = [
+        { Metric: 'Financial Health Score', Value: score.toFixed(2) + '%' },
+        { Metric: 'Total Income', Value: totalIncome.toFixed(2) },
+        { Metric: 'Total Expenses', Value: totalExpenses.toFixed(2) },
+        ...monthlyTrend.map(item => ({
+          Metric: `Cash Flow - ${monthNames[(item?.month || 0) - 1]}`,
+          Value: item.balance.toFixed(2)
+        }))
+      ];
     }
 
     return { headers, data };
@@ -505,7 +520,7 @@ const Reports = () => {
         
         {/* Report Type Tabs */}
         <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden mb-6">
-          <div className="flex">
+          <div className="flex flex-wrap">
             <button
               onClick={() => setActiveTab('monthly')}
               className={`flex-1 py-4 px-6 text-center font-medium text-sm ${activeTab === 'monthly' ? 'text-[#0B1F3A] border-b-2 border-[#D4AF37]' : 'text-[#607D8B] hover:text-[#0B1F3A]'}`}

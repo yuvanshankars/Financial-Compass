@@ -170,7 +170,7 @@ const Dashboard = () => {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
           {/* Income Card */}
           <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
             <div className="p-6">
@@ -231,7 +231,7 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Financial Overview */}
