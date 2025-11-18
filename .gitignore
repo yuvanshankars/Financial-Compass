@@ -37,3 +37,4 @@ pids
 *.pid
 *.seed
 *.pid.lock
+server/config/config.env
