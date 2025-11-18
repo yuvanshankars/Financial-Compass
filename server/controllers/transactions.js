@@ -1,6 +1,7 @@
+const { validationResult } = require('express-validator');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
-const { validationResult } = require('express-validator');
+const sendEmail = require('../utils/email');
 
 // @desc    Get all transactions for a user
 // @route   GET /api/transactions
@@ -75,7 +76,7 @@ exports.getTransactions = async (req, res) => {
       data: transactions
     });
   } catch (err) {
-    console.error(err);
+    console.error('Error in createTransaction:', err);
     res.status(500).json({
       success: false,
       error: 'Server Error'
@@ -193,6 +194,17 @@ exports.createTransaction = async (req, res) => {
       success: true,
       data: transaction
     });
+
+    // Send email notification
+    try {
+      await sendEmail({
+        email: req.user.email,
+        subject: `New ${transaction.type} transaction created`,
+        message: `A new transaction of ${transaction.amount} has been created.`
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({

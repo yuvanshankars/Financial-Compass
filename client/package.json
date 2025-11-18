@@ -76,5 +76,8 @@
   },
   "author": "",
   "license": "ISC",
-  "proxy": "http://localhost:5002"
+  "proxy": "http://localhost:5002",
+  "description": "This is the frontend React application for the Financial Compass expense tracker.",
+  "main": "config-overrides.js",
+  "keywords": []
 }

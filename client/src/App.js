@@ -20,11 +20,15 @@ import Reports from './pages/Reports';
 import Budgets from './pages/Budgets';
 import Investments from './pages/Investments';
 import RecurringTransactions from './pages/RecurringTransactions';
+import Notifications from './components/Notifications';
+import BillUpload from './pages/BillUpload'; // Import the new component
 
 import SmsSync from './pages/SmsSync';
 import NotFound from './pages/NotFound';
 import SplashScreen from './components/SplashScreen';
 
+
+import GoogleAuthCallback from './pages/auth/GoogleAuthCallback';
 
 // Wrapper for protected routes
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +68,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
@@ -74,6 +79,8 @@ function App() {
       <Route path="/budgets" element={<ProtectedRoute><MainLayout><Budgets /></MainLayout></ProtectedRoute>} />
       <Route path="/investments" element={<ProtectedRoute><MainLayout><Investments /></MainLayout></ProtectedRoute>} />
       <Route path="/recurring-transactions" element={<ProtectedRoute><MainLayout><RecurringTransactions /></MainLayout></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute><MainLayout><Notifications /></MainLayout></ProtectedRoute>} />
+      <Route path="/bill-upload" element={<ProtectedRoute><MainLayout><BillUpload /></MainLayout></ProtectedRoute>} /> {/* Add the new route */}
 
       <Route path="/sms-sync" element={<ProtectedRoute><MainLayout><SmsSync /></MainLayout></ProtectedRoute>} />
       

@@ -1,7 +1,8 @@
 const express = require('express');
 const { check } = require('express-validator');
-const { register, login, getMe, logout } = require('../controllers/auth');
+const { register, login, getMe, logout, google, googleCallback } = require('../controllers/auth');
 const { protect } = require('../middleware/auth');
+const passport = require('passport');
 
 const router = express.Router();
 
@@ -33,5 +34,17 @@ router.get('/me', protect, getMe);
 
 // Logout user
 router.get('/logout', protect, logout);
+
+// @desc    Auth with Google
+// @route   GET /api/auth/google
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// @desc    Google auth callback
+// @route   GET /api/auth/google/callback
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  googleCallback
+);
 
 module.exports = router;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { createNotification } from '../services/notificationService';
 
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
@@ -81,7 +82,14 @@ const AddTransaction = () => {
       };
 
       await axios.post('/api/transactions', transactionData);
-      
+
+      // Create a notification
+      await createNotification({
+        title: `New ${formData.type}`,
+        message: `${formData.description} - $${formData.amount}`,
+        type: formData.type,
+      });
+
       toast.success('Transaction added successfully!');
       navigate('/transactions');
     } catch (err) {

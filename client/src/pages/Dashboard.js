@@ -1,7 +1,9 @@
  import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { format } from 'date-fns';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+import { format, isToday } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { 
   ArrowUpIcon, 
@@ -33,6 +35,27 @@ const Dashboard = () => {
     const [transactionsForSelectedDate, setTransactionsForSelectedDate] = useState([]);
   const [allTransactions, setAllTransactions] = useState([]);
   const [datesWithTransactions, setDatesWithTransactions] = useState(new Set());
+  const [showTodaysSpendingList, setShowTodaysSpendingList] = useState(false);
+  const [showSelectedDateTransactions, setShowSelectedDateTransactions] = useState(false);
+  const [showAllTopSpending, setShowAllTopSpending] = useState(false);
+
+  const handleDownload = () => {
+    const formattedDate = format(calendarDate, 'yyyy-MM-dd');
+    const reportData = transactionsForSelectedDate.map(t => ({
+      Date: format(new Date(t.date), 'yyyy-MM-dd'),
+      Description: t.description,
+      Category: t.category.name,
+      Amount: t.amount,
+      Type: t.type,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(reportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Transactions_${formattedDate}`);
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(data, `Transactions_${formattedDate}.xlsx`);
+  };
 
 
   const [viewedMonth, setViewedMonth] = useState(new Date().getMonth() + 1);
@@ -327,25 +350,74 @@ const Dashboard = () => {
               </div>
               {transactionsForSelectedDate.length > 0 && (
                 <div className="p-6 border-t border-[#ECEFF1]">
-                  <h4 className="text-md font-semibold text-[#0B1F3A] mb-4">
-                    Transactions for {format(calendarDate, 'MMMM d, yyyy')}
-                  </h4>
-                  <div className="space-y-4">
-                    {transactionsForSelectedDate.map((transaction) => (
-                      <div key={transaction._id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-[#0B1F3A]">{transaction.description}</p>
-                          <p className="text-sm text-[#607D8B]">{transaction.category.name}</p>
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-md font-semibold text-[#0B1F3A]">
+                      Transactions for {format(calendarDate, 'MMMM d, yyyy')}
+                    </h4>
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={handleDownload}
+                        className="px-4 py-2 text-sm font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
+                      >
+                        Download Report
+                      </button>
+                      <button
+                        onClick={() => setShowSelectedDateTransactions(!showSelectedDateTransactions)}
+                        className="px-4 py-2 text-sm font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
+                      >
+                        {showSelectedDateTransactions ? "Show Less" : "See More"}
+                      </button>
+                    </div>
+                  </div>
+                  {showSelectedDateTransactions && (
+                    <div className="space-y-4">
+                      {transactionsForSelectedDate.map((transaction) => (
+                        <div key={transaction._id} className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-[#0B1F3A]">{transaction.description}</p>
+                            <p className="text-sm text-[#607D8B]">{transaction.category.name}</p>
+                          </div>
+                          <p className={`font-semibold ${transaction.type === 'income' ? 'text-[#2ECC71]' : 'text-red-600'}`}>
+                            {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
+                          </p>
                         </div>
-                        <p className={`font-semibold ${transaction.type === 'income' ? 'text-[#2ECC71]' : 'text-red-600'}`}>
-                          {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
-                        </p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Today's Spending */}
+            <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
+              <div className="px-6 py-5 border-b border-[#ECEFF1] flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-[#0B1F3A]">Today's Spending</h3>
+                <button
+                  onClick={() => setShowTodaysSpendingList(!showTodaysSpendingList)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
+                >
+                  {showTodaysSpendingList ? "Show Less" : "See More"}
+                </button>
+              </div>
+              {showTodaysSpendingList && (
+                <div className="px-6 py-4">
+                  <div className="space-y-4">
+                    {allTransactions
+                      .filter(t => isToday(new Date(t.date)) && t.type === 'expense')
+                      .map(transaction => (
+                        <div key={transaction._id} className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-[#0B1F3A]">{transaction.description}</p>
+                            <p className="text-sm text-[#607D8B]">{transaction.category.name}</p>
+                          </div>
+                          <p className="font-semibold text-red-600">-₹{transaction.amount.toFixed(2)}</p>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
             </div>
+
             {/* Budget Alerts */}
             {budgetAlerts.length > 0 && (
               <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
@@ -395,13 +467,19 @@ const Dashboard = () => {
 
             {/* Top Spending Categories */}
             <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden">
-              <div className="px-6 py-5 border-b border-[#ECEFF1]">
+              <div className="px-6 py-5 border-b border-[#ECEFF1] flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-[#0B1F3A]">Top Spending Categories</h3>
+                <button
+                  onClick={() => setShowAllTopSpending(!showAllTopSpending)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
+                >
+                  {showAllTopSpending ? "Show Less" : "See More"}
+                </button>
               </div>
               <div className="px-6 py-4">
                 {categorySummary.length > 0 ? (
                   <div className="space-y-5">
-                    {categorySummary.slice(0, 5).map((category) => (
+                    {(showAllTopSpending ? categorySummary : categorySummary.slice(0, 2)).map((category) => (
                       <div key={category._id} className="relative">
                         <div className="flex justify-between mb-1">
                           <div>

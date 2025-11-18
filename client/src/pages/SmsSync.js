@@ -3,6 +3,8 @@ import { format } from 'date-fns';
 import { Button, FormInput, LoadingSpinner } from '../components/ui';
 import { parseSms } from '../utils/smsParser';
 import api from '../services/api';
+import { createNotification } from '../services/notificationService';
+
 
 const SmsSync = () => {
   const [smsText, setSmsText] = useState('');
@@ -29,7 +31,9 @@ const SmsSync = () => {
     setError(null);
     setSuccessMessage(null);
     try {
+      console.log("Parsing SMS text:", smsText);
       const parsed = parseSms(smsText);
+      console.log("Parsed transactions:", parsed);
       const uncategorizedCategory = categories.find(c => c.name === 'Uncategorized');
       const defaultCategoryId = uncategorizedCategory ? uncategorizedCategory._id : (categories.length > 0 ? categories[0]._id : '');
 
@@ -53,6 +57,7 @@ const SmsSync = () => {
       const transactionsToSave = parsedTransactions
         .filter(t => t.selected)
         .map(t => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, selected, ...rest } = t;
           return rest;
         });
@@ -64,6 +69,16 @@ const SmsSync = () => {
       }
 
       await api.post('/api/sms/save', { transactions: transactionsToSave });
+
+      // Create notifications for saved transactions
+      for (const transaction of transactionsToSave) {
+        await createNotification({
+          title: `New ${transaction.type}`,
+          message: `A new transaction of ${transaction.amount} has been added.`,
+          type: transaction.type,
+        });
+      }
+
       setSuccessMessage('Transactions saved successfully!');
       setParsedTransactions([]);
       setSmsText('');

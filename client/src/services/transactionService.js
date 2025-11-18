@@ -70,3 +70,17 @@ export const getTransactionStats = async (params = {}) => {
   const response = await api.get('/api/transactions/stats', { params });
   return response.data;
 };
+
+/**
+ * Scan a bill image and extract transaction details
+ * @param {FormData} formData - Form data containing the bill image
+ * @returns {Promise} Promise with the response data
+ */
+export const scanBill = async (formData) => {
+  const response = await api.post('/api/transactions/scan', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};

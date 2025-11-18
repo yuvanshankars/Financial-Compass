@@ -1,8 +1,9 @@
+require('dotenv').config({ path: 'g:\\ET\\.env' });
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
-require('dotenv').config();
+// require('dotenv').config({ path: './config/config.env' });
 const connectDB = require('./config/db');
 
 // Import routes
@@ -14,10 +15,16 @@ const budgetRoutes = require('./routes/budgets');
 const recurringTransactionRoutes = require('./routes/recurringTransactions');
 const smsRoutes = require('./routes/sms');
 const investmentRoutes = require('./routes/investmentRoutes');
+const notificationRoutes = require('./routes/notifications');
 // const financialGoalRoutes = require('./routes/financialGoals');
 
 // Initialize express app
 const { protect } = require('./middleware/auth');
+const passport = require('passport');
+const session = require('express-session');
+
+// Passport config
+require('./config/passport')(passport);
 
 require('./cron');
 
@@ -40,6 +47,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
+// Express session
+app.use(
+  session({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: false
+  })
+);
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Connect to MongoDB
 connectDB();
 
@@ -53,6 +73,7 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/investments', investmentRoutes);
+app.use('/api/notifications', notificationRoutes);
 // app.use('/api/financial-goals', financialGoalRoutes);
 
 // Catch-all route for debugging

@@ -120,6 +120,14 @@ exports.logout = (req, res) => {
   });
 };
 
+// @desc    Google auth callback
+// @route   GET /api/auth/google/callback
+// @access  Public
+exports.googleCallback = (req, res) => {
+  const token = req.user.getSignedJwtToken();
+  res.redirect(`http://localhost:3000/auth/google/callback?token=${token}`);
+};
+
 // Helper function to get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   // Create token

@@ -61,6 +61,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Login with token
+  const loginWithToken = (newToken) => {
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    // The user will be loaded by the useEffect hook
+  };
+
   // Login user
   const login = async (userData) => {
     try {
@@ -103,7 +110,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         register,
         login,
-        logout
+        logout,
+        loginWithToken
       }}
     >
       {children}

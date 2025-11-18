@@ -14,6 +14,11 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ['expense', 'income', 'monthly_report', 'daily_report', 'weekly_report'],
+    required: true,
+  },
   read: {
     type: Boolean,
     default: false,

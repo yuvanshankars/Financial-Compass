@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Chatbot from '../Chatbot';
+import { getNotifications } from '../../services/notificationService';
 import {
   HomeIcon,
   CreditCardIcon,
   TagIcon,
+  BellIcon,
 
   CurrencyDollarIcon,
   ArrowPathIcon,
@@ -17,8 +19,8 @@ import {
   BanknotesIcon,
   ChatBubbleBottomCenterTextIcon,
   ChatBubbleOvalLeftEllipsisIcon,
-  
 } from '@heroicons/react/24/outline';
+import { DocumentScannerIcon } from '../icons'; // Import the new icon
 
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -26,6 +28,27 @@ const MainLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        console.log('Fetching notifications for indicator...');
+        const res = await getNotifications();
+        console.log('Notifications response:', res);
+        const unread = res.data.filter(n => !n.read).length;
+        console.log('Unread count:', unread);
+        setUnreadCount(unread);
+      } catch (error) {
+        console.error('Failed to fetch notifications for indicator:', error);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -34,9 +57,10 @@ const MainLayout = ({ children }) => {
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
     { name: 'Budgets', href: '/budgets', icon: CurrencyDollarIcon },
     { name: 'Recurring', href: '/recurring-transactions', icon: ArrowPathIcon },
-
+    { name: 'Notifications', href: '/notifications', icon: BellIcon },
     { name: 'Investments', href: '/investments', icon: BanknotesIcon },
-    { name: 'Add from SMS', href: '/sms-sync', icon: ChatBubbleBottomCenterTextIcon }
+    { name: 'Add from SMS', href: '/sms-sync', icon: ChatBubbleBottomCenterTextIcon },
+    { name: 'Scan Bill', href: '/bill-upload', icon: DocumentScannerIcon } // Add the new navigation link
   ];
 
   const handleLogout = async () => {
@@ -87,10 +111,15 @@ const MainLayout = ({ children }) => {
                       } transition-colors`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <item.icon
-                      className={`mr-4 h-6 w-6 ${isActive ? 'text-white' : 'text-[#607D8B] group-hover:text-[#0B1F3A]'}`}
-                      aria-hidden="true"
-                    />
+                    <div className="relative mr-4">
+                      <item.icon
+                        className={`h-6 w-6 ${isActive ? 'text-white' : 'text-[#607D8B] group-hover:text-[#0B1F3A]'}`}
+                        aria-hidden="true"
+                      />
+                      {item.name === 'Notifications' && unreadCount > 0 && (
+                        <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                      )}
+                    </div>
                     {item.name}
                   </Link>
                 );
@@ -104,7 +133,8 @@ const MainLayout = ({ children }) => {
                 <UserCircleIcon className="h-10 w-10 text-[#607D8B]" />
               </div>
               <div className="ml-3">
-                <p className="text-base font-medium text-[#0B1F3A]">{user?.name}</p>
+                <p className="text-base font-medium text-[#0B1F3A]">{user?.displayName}</p>
+                <p className="text-sm font-medium text-gray-500">{user?.email}</p>
                 <button
                   onClick={handleLogout}
                   className="text-sm font-medium text-[#607D8B] hover:text-[#0B1F3A] flex items-center mt-1 transition-colors"
@@ -139,10 +169,15 @@ const MainLayout = ({ children }) => {
                       : 'text-[#0B1F3A] hover:bg-[#ECEFF1]'
                       } transition-colors`}
                   >
-                    <item.icon
-                      className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-[#607D8B] group-hover:text-[#0B1F3A]'}`}
-                      aria-hidden="true"
-                    />
+                    <div className="relative mr-3">
+                      <item.icon
+                        className={`h-5 w-5 ${isActive ? 'text-white' : 'text-[#607D8B] group-hover:text-[#0B1F3A]'}`}
+                        aria-hidden="true"
+                      />
+                      {item.name === 'Notifications' && unreadCount > 0 && (
+                        <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                      )}
+                    </div>
                     {item.name}
                   </Link>
                 );
@@ -155,7 +190,8 @@ const MainLayout = ({ children }) => {
                 <UserCircleIcon className="h-10 w-10 text-[#607D8B]" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-[#0B1F3A]">{user?.name}</p>
+                <p className="text-sm font-medium text-[#0B1F3A]">{user?.displayName}</p>
+                <p className="text-xs font-medium text-gray-500">{user?.email}</p>
                 <button
                   onClick={handleLogout}
                   className="text-xs font-medium text-[#607D8B] hover:text-[#0B1F3A] flex items-center mt-1 transition-colors"

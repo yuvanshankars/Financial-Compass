@@ -133,6 +133,15 @@ const Login = () => {
                 )}
               </button>
             </div>
+            <div>
+              <a
+                href={`${process.env.REACT_APP_API_URL}/auth/google`}
+                className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-[#0B1F3A] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] transition-colors"
+              >
+                <svg className="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 256S109.8 0 244 0c73 0 135.3 29.1 181.8 75.3l-65.5 63.8C333.7 116.2 292.2 96 244 96c-83.2 0-151.2 67.2-151.2 150s68 150 151.2 150c97.2 0 130.3-72.8 134.3-110.2H244v-76h244.6c2.6 13.3 5.4 26.3 5.4 41.8z"></path></svg>
+                <span>Sign in with Google</span>
+              </a>
+            </div>
           </form>
 
           <div className="mt-6">

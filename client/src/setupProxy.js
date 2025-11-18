@@ -30,7 +30,7 @@ module.exports = function(app) {
   );
 
   app.use(
-    ['/api/auth', '/api/budgets', '/api/categories', '/api/recurring-transactions', '/api/transactions', '/api/reports', '/api/receipts', '/api/sms'],
+    ['/api/auth', '/api/budgets', '/api/categories', '/api/recurring-transactions', '/api/transactions', '/api/reports', '/api/receipts', '/api/sms', '/api/investments'],
     createProxyMiddleware({
       target: 'http://localhost:5002',
       changeOrigin: true,
