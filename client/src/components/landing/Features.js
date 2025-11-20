@@ -24,7 +24,7 @@ const Features = () => {
             detailed transaction categorization.
           </p>
           <div className="feature-link">
-            <a href="#">Learn more</a>
+            <a href="/features">Learn more</a>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3.33325 8H12.6666" stroke="#2ECC71" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M8 3.33334L12.6667 8.00001L8 12.6667" stroke="#2ECC71" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -43,7 +43,7 @@ const Features = () => {
             forecasting based on your spending patterns.
           </p>
           <div className="feature-link">
-            <a href="#">Learn more</a>
+            <a href="/features">Learn more</a>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3.33325 8H12.6666" stroke="#2ECC71" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M8 3.33334L12.6667 8.00001L8 12.6667" stroke="#2ECC71" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -62,7 +62,7 @@ const Features = () => {
             and customizable reporting.
           </p>
           <div className="feature-link">
-            <a href="#">Learn more</a>
+            <a href="/features">Learn more</a>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3.33325 8H12.6666" stroke="#2ECC71" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M8 3.33334L12.6667 8.00001L8 12.6667" stroke="#2ECC71" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

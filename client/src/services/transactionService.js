@@ -79,6 +79,7 @@ export const getTransactionStats = async (params = {}) => {
 export const scanBill = async (formData) => {
   const response = await api.post('/api/transactions/scan', formData, {
     headers: {
+      ...api.defaults.headers,
       'Content-Type': 'multipart/form-data',
     },
   });

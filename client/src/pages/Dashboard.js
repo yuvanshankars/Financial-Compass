@@ -354,16 +354,16 @@ const Dashboard = () => {
                     <h4 className="text-md font-semibold text-[#0B1F3A]">
                       Transactions for {format(calendarDate, 'MMMM d, yyyy')}
                     </h4>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
                       <button
                         onClick={handleDownload}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
                       >
                         Download Report
                       </button>
                       <button
                         onClick={() => setShowSelectedDateTransactions(!showSelectedDateTransactions)}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-white bg-[#0B1F3A] rounded-lg hover:bg-[#D4AF37] transition-colors"
                       >
                         {showSelectedDateTransactions ? "Show Less" : "See More"}
                       </button>

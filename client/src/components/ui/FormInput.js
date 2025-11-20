@@ -14,20 +14,25 @@ import React from 'react';
  * @param {boolean} [props.required=false] - Whether the input is required
  */
 const FormInput = ({ id, name, label, type = 'text', value, onChange, placeholder, error, required, ...rest }) => {
+  const inputProps = {
+    type,
+    id: id || name,
+    name,
+    onChange,
+    placeholder,
+    required,
+    className: `form-input ${error ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''}`,
+    ...rest,
+  };
+
+  if (type !== 'file') {
+    inputProps.value = value || '';
+  }
+
   return (
     <div className="mb-4">
       {label && <label htmlFor={id || name} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-      <input
-        type={type}
-        id={id || name}
-        name={name}
-        value={value || ''}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        className={`form-input ${error ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''}`}
-        {...rest}
-      />
+      <input {...inputProps} />
       {error && <p className="mt-1 text-sm text-danger-500">{error}</p>}
     </div>
   );

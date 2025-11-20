@@ -1,7 +1,238 @@
+const axios = require('axios');
+const FormData = require('form-data');
 const { validationResult } = require('express-validator');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const sendEmail = require('../utils/email');
+const fs = require('fs');
+
+// @desc    Scan a bill and extract details
+// @route   POST /api/transactions/scan
+// @access  Private
+exports.scanBill = async (req, res) => {
+  console.log('scanBill function started.');
+  console.log('Request body:', req.body);
+  console.log('Request file:', req.file);
+  try {
+    if (!req.file) {
+      console.log('No file uploaded.');
+      return res.status(400).json({ success: false, error: 'No file uploaded.' });
+    }
+
+    console.log('Uploaded file details:', req.file);
+
+    // OCR.space API implementation with axios and form-data
+    const form = new FormData();
+    form.append('language', 'eng');
+    form.append('file', fs.createReadStream(req.file.path));
+    form.append('apikey', process.env.OCR_SPACE_API_KEY);
+    form.append('filetype', req.file.mimetype.split('/')[1].toUpperCase());
+
+    console.log('Making OCR.space API call.');
+    const ocrResponse = await axios.post('https://api.ocr.space/parse/image', form, {
+      headers: form.getHeaders(),
+    }).catch(err => {
+      console.error('Error in OCR.space API call:', err);
+      return null;
+    });
+    console.log('OCR.space API call finished.');
+
+    console.log('OCR.space API Response:', JSON.stringify(ocrResponse.data, null, 2));
+
+    if (!ocrResponse.data.ParsedResults || ocrResponse.data.ParsedResults.length === 0) {
+      return res.status(400).json({ success: false, error: 'Could not parse the document.' });
+    }
+
+    const parsedText = ocrResponse.data.ParsedResults[0].ParsedText;
+    console.log('Parsed Text:', parsedText);
+
+    // Function to format date to YYYY-MM-DD
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      
+      if (dateStr instanceof Date) {
+        if (isNaN(dateStr.getTime())) return '';
+        dateStr = dateStr.toString();
+      }
+    
+      if (typeof dateStr !== 'string') {
+          return '';
+      }
+
+      let date;
+      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const monthIndex = monthNames.indexOf(dateStr.trim().toLowerCase().substring(0, 3));
+      if (monthIndex > -1) {
+        date = new Date();
+        date.setMonth(monthIndex);
+        const dayMatch = dateStr.match(/\b(\d{1,2})\b/);
+        if(dayMatch) {
+            date.setDate(parseInt(dayMatch[0], 10));
+        } else {
+            date.setDate(1);
+        }
+      } else {
+        date = new Date(dateStr);
+      }
+
+      if (isNaN(date.getTime())) return '';
+
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // More robust parsing for total amount, date, and supplier name
+    const lines = parsedText.split('\r\n');
+    let totalAmount = '';
+    let date = '';
+    let supplierName = '';
+
+    // Regex for amount
+    const amountRegex = /(\d+\.\d{2})/;
+    const potentialAmounts = [];
+
+    // 1. Find all potential amounts
+    lines.forEach((line, index) => {
+      const amountMatches = line.match(new RegExp(amountRegex, 'g'));
+      if (amountMatches) {
+        amountMatches.forEach(amount => {
+          potentialAmounts.push({
+            amount: parseFloat(amount),
+            context: line.toLowerCase(),
+            prevLineContext: index > 0 ? lines[index - 1].toLowerCase() : ''
+          });
+        });
+      }
+    });
+
+    console.log('Potential amounts found:', potentialAmounts);
+
+    // 2. Determine the final amount
+    let finalAmount = null;
+    const totalKeywordAmounts = potentialAmounts.filter(p =>
+      (p.context.includes('total') || p.prevLineContext.includes('total')) &&
+      !p.context.includes('sub') && !p.prevLineContext.includes('sub')
+    );
+
+    if (totalKeywordAmounts.length > 0) {
+      finalAmount = Math.max(...totalKeywordAmounts.map(p => p.amount));
+    }
+
+    if (finalAmount === null) {
+      const amountKeywordAmounts = potentialAmounts.filter(p =>
+        p.context.includes('amount') || p.prevLineContext.includes('amount')
+      );
+      if (amountKeywordAmounts.length > 0) {
+        finalAmount = Math.max(...amountKeywordAmounts.map(p => p.amount));
+      }
+    }
+
+    if (finalAmount === null && potentialAmounts.length > 0) {
+      finalAmount = Math.max(...potentialAmounts.map(p => p.amount));
+    }
+
+    if (finalAmount !== null) {
+      totalAmount = finalAmount.toFixed(2);
+    }
+    
+    console.log('Final amount selected:', totalAmount);
+
+    // 3. --- DATE LOGIC ---
+    const dateLine = lines.find(line => line.toLowerCase().includes('date'));
+    if (dateLine) {
+        console.log('Date line found:', dateLine);
+        const fullDateRegex = /(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/;
+        let match = dateLine.match(fullDateRegex);
+        if (match) {
+            date = formatDate(match[0]);
+        }
+
+        if (!date) {
+            const monthRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i;
+            const dayRegex = /\b(\d{1,2})\b/;
+            const yearRegex = /\b(\d{4})\b/;
+
+            const monthMatch = dateLine.match(monthRegex);
+            const dayMatch = dateLine.match(dayRegex);
+            const yearMatch = dateLine.match(yearRegex);
+
+            const month = monthMatch ? monthMatch[0] : null;
+            let day = dayMatch ? parseInt(dayMatch[0], 10) : null;
+            const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
+
+            if (day && (day < 1 || day > 31)) {
+                day = null;
+            }
+
+            if (month || day || year) {
+                const d = new Date();
+                if (year) d.setFullYear(year);
+                if (month) d.setMonth(new Date(Date.parse(month +" 1, 2000")).getMonth());
+                if (day) d.setDate(day);
+                
+                date = formatDate(d);
+            }
+        }
+        if(date) console.log('Date found:', date);
+    }
+    // --- END DATE LOGIC ---
+
+    // 4. --- SUPPLIER NAME LOGIC ---
+    const supplierKeywords = ['restaurant', 'cafe', 'store', 'market', 'bhavan', 'pothigai'];
+    let potentialSuppliers = [];
+
+    lines.forEach((line, index) => {
+        const lowerLine = line.toLowerCase();
+        if (lowerLine.includes('date:') || lowerLine.includes('time:') || lowerLine.includes('total') || lowerLine.match(/(\d+\.\d{2})/)) {
+            return;
+        }
+        if (line.replace(/[^a-zA-Z]/g, "").length < 3 || line.length > 50) {
+            return;
+        }
+
+        let score = 0;
+        if (index === 0) {
+            score += 5;
+        }
+        if (supplierKeywords.some(keyword => lowerLine.includes(keyword))) {
+            score += 3;
+        }
+        if (line.length > 3 && line === line.toUpperCase()) {
+            score += 2;
+        }
+
+        if (score > 0) {
+            potentialSuppliers.push({ name: line.trim(), score: score });
+        }
+    });
+
+    if (potentialSuppliers.length > 0) {
+        potentialSuppliers.sort((a, b) => b.score - a.score);
+        supplierName = potentialSuppliers[0].name;
+        console.log('Potential suppliers:', potentialSuppliers);
+    } else if (lines.length > 0) {
+        supplierName = lines.find(line => line.trim() !== '') || '';
+    }
+    console.log('Supplier name selected:', supplierName);
+    // --- END SUPPLIER NAME LOGIC ---
+
+    const extractedData = {
+      description: supplierName,
+      amount: totalAmount,
+      date: date,
+      category: null,
+      type: 'expense',
+      shopName: supplierName
+    };
+
+    res.status(200).json({ success: true, data: extractedData });
+  } catch (err) {
+    console.error('Full error in scanBill:', err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
 
 // @desc    Get all transactions for a user
 // @route   GET /api/transactions

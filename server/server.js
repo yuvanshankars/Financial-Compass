@@ -1,4 +1,4 @@
-require('dotenv').config({ path: 'g:\\ET\\.env' });
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -85,7 +85,7 @@ app.use((req, res, next) => {
 // Cron job
 // require('./jobs/cron');
 
-const PORT = 5002;
+const PORT = process.env.PORT || 5003;
 
 const server = app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 

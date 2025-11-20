@@ -12,36 +12,28 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Set auth token in axios headers
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [token]);
-
-  // Load user if token exists
-  useEffect(() => {
-    const loadUser = async () => {
-      if (token) {
-        try {
-          const res = await axios.get('/api/auth/me');
-          setUser(res.data.data);
-          setIsAuthenticated(true);
-        } catch (err) {
-          console.error('Error loading user:', err);
-          localStorage.removeItem('token');
-          setToken(null);
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+  const loadUser = async () => {
+    const tokenFromStorage = localStorage.getItem('token');
+    if (tokenFromStorage) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage}`;
+      try {
+        const res = await axios.get('/api/auth/me');
+        setUser(res.data.data);
+        setIsAuthenticated(true);
+      } catch (err) {
+        console.error('Error loading user:', err);
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
       }
-      setLoading(false);
-    };
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
     loadUser();
-  }, [token]);
+  }, []);
 
   // Register user
   const register = async (userData) => {
@@ -62,10 +54,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login with token
-  const loginWithToken = (newToken) => {
+  const loginWithToken = async (newToken) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
-    // The user will be loaded by the useEffect hook
+    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+    try {
+      const res = await axios.get('/api/auth/me');
+      setUser(res.data.data);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Error loading user with token:', err);
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   // Login user

@@ -8,15 +8,19 @@ const GoogleAuthCallback = () => {
   const { loginWithToken } = useAuth();
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const token = searchParams.get('token');
+    const handleAuth = async () => {
+      const searchParams = new URLSearchParams(location.search);
+      const token = searchParams.get('token');
 
-    if (token) {
-      loginWithToken(token);
-      navigate('/dashboard');
-    } else {
-      navigate('/login');
-    }
+      if (token) {
+        await loginWithToken(token);
+        navigate('/dashboard');
+      } else {
+        navigate('/login');
+      }
+    };
+
+    handleAuth();
   }, [location, navigate, loginWithToken]);
 
   return <div>Loading...</div>;

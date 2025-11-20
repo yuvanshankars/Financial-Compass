@@ -1,5 +1,6 @@
 const express = require('express');
 const { check } = require('express-validator');
+const multer = require('multer');
 const {
   getTransactions,
   getTransaction,
@@ -11,14 +12,19 @@ const {
   getMonthlyTrend,
   getPerformanceSummary,
   createBulkTransactions,
-  getTransactionsByDate
+  getTransactionsByDate,
+  scanBill
 } = require('../controllers/transactions');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
 // Protect all routes
 router.use(protect);
+
+// Scan bill
+router.post('/scan', upload.single('bill'), scanBill);
 
 // Get monthly summary
 router.get('/summary/monthly', getMonthlySummary);
