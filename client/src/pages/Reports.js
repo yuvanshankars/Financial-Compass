@@ -33,12 +33,13 @@ const Reports = () => {
   const [activeTab, setActiveTab] = useState('monthly');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Data states
   const [monthlyTrend, setMonthlyTrend] = useState([]);
   const [categorySummary, setCategorySummary] = useState([]);
   const [yearlyComparison, setYearlyComparison] = useState([]);
-  
+  const [dailyTrend, setDailyTrend] = useState([]); // New daily trend state
+
   // Filter states
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -56,6 +57,15 @@ const Reports = () => {
         Balance: item?.balance || 0,
         Transactions: item?.transactionCount || 0,
       }));
+    } else if (activeTab === 'daily') { // Daily export logic
+      headers = ['Date', 'Income', 'Expenses', 'Balance', 'Transactions'];
+      data = dailyTrend.map(item => ({
+        Date: item.date,
+        Income: item.totalIncome || 0,
+        Expenses: item.totalExpense || 0,
+        Balance: item.balance || 0,
+        Transactions: item.transactionCount || 0
+      }));
     } else if (activeTab === 'category') {
       headers = ['Category', 'Amount', 'Percentage'];
       data = categorySummary.map(item => ({
@@ -71,6 +81,7 @@ const Reports = () => {
         Income: item?.totalIncome || 0,
         Expenses: item?.totalExpense || 0,
         Balance: item?.balance || 0,
+        Transactions: item?.transactionCount || 0,
       }));
       const prevYearRows = yearlyComparison.prevYear.map((item, index) => ({
         Year: selectedYear - 1,
@@ -78,6 +89,7 @@ const Reports = () => {
         Income: item?.totalIncome || 0,
         Expenses: item?.totalExpense || 0,
         Balance: item?.balance || 0,
+        Transactions: item?.transactionCount || 0,
       }));
       data = [...currentYearRows, ...prevYearRows];
     } else if (activeTab === 'visualization') {
@@ -102,36 +114,36 @@ const Reports = () => {
 
   const downloadCSV = () => {
     const { headers, data } = getExportData();
-  
+
     if (!data || data.length === 0) {
       alert('No data to download.');
       return;
     }
-  
+
     const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
     const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
     const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, `report_${activeTab}_${selectedYear}.csv`);
   };
-  
+
   const downloadExcel = () => {
     const { headers, data } = getExportData();
-  
+
     if (!data || data.length === 0) {
       alert('No data to download.');
       return;
     }
-  
+
     const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
-    
+
     const cols = headers.map(header => ({ wch: Math.max(header.length, ...data.map(row => String(row[header]).length)) + 2 }));
     worksheet['!cols'] = cols;
-  
+
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-  
+
     saveAs(blob, `report_${activeTab}_${selectedYear}.xlsx`);
   };
 
@@ -141,22 +153,42 @@ const Reports = () => {
     selectedYear - 1,
     selectedYear - 2
   ];
-  
+
   // Month names for labels
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  // Fetch daily trend data
+  const fetchDailyTrend = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await reportService.getDailyTrend(selectedYear, selectedMonth);
+      console.log('Daily trend response:', response);
+      if (response && response.success) {
+        setDailyTrend(response.data);
+      } else {
+        setDailyTrend([]);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching daily trend:', err);
+      setDailyTrend([]);
+      setLoading(false);
+    }
+  }, [selectedYear, selectedMonth]);
+
   // Fetch monthly trend data for the selected year
   const fetchMonthlyTrend = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await reportService.getMonthlyTrend(selectedYear);
       console.log('Monthly trend response:', response);
-      
+
       // Handle different response structures
       let monthlyData = [];
       if (response && response.success && response.data && response.data.monthlyData) {
@@ -168,10 +200,10 @@ const Reports = () => {
       } else if (response && Array.isArray(response)) {
         monthlyData = response;
       }
-      
+
       console.log('Processed monthly data:', monthlyData);
       setMonthlyTrend(monthlyData);
-      
+
       setLoading(false);
     } catch (err) {
       console.error('Error fetching monthly trend:', err);
@@ -186,10 +218,10 @@ const Reports = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await reportService.getCategorySummary(selectedYear, selectedMonth);
       console.log('Category summary response:', response);
-      
+
       // Handle different response structures
       let categories = [];
       if (response && response.success && response.data) {
@@ -199,7 +231,7 @@ const Reports = () => {
       } else if (response && Array.isArray(response)) {
         categories = response;
       }
-      
+
       // Add percentage calculation for pie chart
       if (categories && categories.length > 0) {
         const total = categories.reduce((sum, category) => sum + (category.totalAmount || category.total || 0), 0);
@@ -212,7 +244,7 @@ const Reports = () => {
       } else {
         setCategorySummary([]);
       }
-      
+
       setLoading(false);
     } catch (err) {
       console.error('Error fetching category summary:', err);
@@ -227,23 +259,23 @@ const Reports = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch data for current year and previous year
       const currentYearData = await reportService.getMonthlyTrend(selectedYear);
       const prevYearData = await reportService.getMonthlyTrend(selectedYear - 1);
-      
+
       console.log('Yearly comparison - current year:', currentYearData);
       console.log('Yearly comparison - previous year:', prevYearData);
-      
+
       // Handle different response structures
       const currentYearMonthlyData = currentYearData.data?.monthlyData || currentYearData.monthlyData || [];
       const prevYearMonthlyData = prevYearData.data?.monthlyData || prevYearData.monthlyData || [];
-      
+
       setYearlyComparison({
         currentYear: currentYearMonthlyData,
         prevYear: prevYearMonthlyData
       });
-      
+
       setLoading(false);
     } catch (err) {
       console.error('Error fetching yearly comparison:', err);
@@ -260,8 +292,10 @@ const Reports = () => {
       fetchCategorySummary();
     } else if (activeTab === 'yearly') {
       fetchYearlyComparison();
+    } else if (activeTab === 'daily') { // Fetch daily
+      fetchDailyTrend();
     }
-  }, [activeTab, selectedYear, selectedMonth, fetchMonthlyTrend, fetchCategorySummary, fetchYearlyComparison]);
+  }, [activeTab, selectedYear, selectedMonth, fetchMonthlyTrend, fetchCategorySummary, fetchYearlyComparison, fetchDailyTrend]);
 
   // Monthly trend chart data with validation
   const monthlyTrendData = {
@@ -296,7 +330,7 @@ const Reports = () => {
 
   // Category summary chart data with validation
   const categorySummaryData = {
-    labels: Array.isArray(categorySummary) && categorySummary.length > 0 
+    labels: Array.isArray(categorySummary) && categorySummary.length > 0
       ? categorySummary.map(category => category.name || 'Unknown Category')
       : ['No Data'],
     datasets: [
@@ -319,7 +353,7 @@ const Reports = () => {
     datasets: [
       {
         label: `Income ${selectedYear}`,
-        data: Array.isArray(yearlyComparison.currentYear) 
+        data: Array.isArray(yearlyComparison.currentYear)
           ? yearlyComparison.currentYear.map(item => item?.totalIncome || 0)
           : Array(12).fill(0),
         backgroundColor: 'rgba(46, 204, 113, 0.7)'
@@ -517,7 +551,7 @@ const Reports = () => {
             </button>
           </div>
         </div>
-        
+
         {/* Report Type Tabs */}
         <div className="bg-white rounded-xl shadow border border-[#CFD8DC] overflow-hidden mb-6">
           <div className="flex flex-wrap">
@@ -526,6 +560,12 @@ const Reports = () => {
               className={`flex-1 py-4 px-6 text-center font-medium text-sm ${activeTab === 'monthly' ? 'text-[#0B1F3A] border-b-2 border-[#D4AF37]' : 'text-[#607D8B] hover:text-[#0B1F3A]'}`}
             >
               Monthly Trends
+            </button>
+            <button
+              onClick={() => setActiveTab('daily')}
+              className={`flex-1 py-4 px-6 text-center font-medium text-sm ${activeTab === 'daily' ? 'text-[#0B1F3A] border-b-2 border-[#D4AF37]' : 'text-[#607D8B] hover:text-[#0B1F3A]'}`}
+            >
+              Day by Day
             </button>
             <button
               onClick={() => setActiveTab('category')}
@@ -547,7 +587,7 @@ const Reports = () => {
             </button>
           </div>
         </div>
-        
+
         {/* Filters */}
         <div className="bg-white rounded-xl shadow border border-[#CFD8DC] p-6 mb-6">
           <div className="flex flex-wrap items-center gap-6">
@@ -566,7 +606,7 @@ const Reports = () => {
                 ))}
               </select>
             </div>
-            
+
             {activeTab === 'category' && (
               <div className="flex-1 min-w-[200px]">
                 <label htmlFor="month" className="block text-sm font-medium text-[#0B1F3A] mb-2">
@@ -586,7 +626,7 @@ const Reports = () => {
             )}
           </div>
         </div>
-        
+
         {/* Error State */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
@@ -602,7 +642,7 @@ const Reports = () => {
             </div>
           </div>
         )}
-        
+
         {/* Loading State */}
         {loading ? (
           <div className="flex justify-center items-center h-64 bg-white rounded-xl shadow border border-[#CFD8DC]">
@@ -618,7 +658,7 @@ const Reports = () => {
                 <div className="h-[400px] mb-8">
                   <Line data={monthlyTrendData} options={lineChartOptions} />
                 </div>
-                
+
                 {/* Summary Table */}
                 <div className="overflow-x-auto">
                   {Array.isArray(monthlyTrend) && monthlyTrend.length > 0 ? (
@@ -662,18 +702,104 @@ const Reports = () => {
                 </div>
               </div>
             )}
-            
+
+
+
+            {/* Daily Trend Chart */}
+            {activeTab === 'daily' && (
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-[#0B1F3A] mb-6">Daily Financial Performance - {monthNames[selectedMonth - 1]} {selectedYear}</h2>
+                <div className="h-[400px] mb-8">
+                  <Line
+                    data={{
+                      labels: dailyTrend.map(item => item.day),
+                      datasets: [
+                        {
+                          label: 'Income',
+                          data: dailyTrend.map(item => item.totalIncome),
+                          borderColor: '#2ECC71',
+                          backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                          tension: 0.3,
+                          borderWidth: 2
+                        },
+                        {
+                          label: 'Expenses',
+                          data: dailyTrend.map(item => item.totalExpense),
+                          borderColor: '#EB5757',
+                          backgroundColor: 'rgba(235, 87, 87, 0.1)',
+                          tension: 0.3,
+                          borderWidth: 2
+                        },
+                      ]
+                    }}
+                    options={{
+                      ...lineChartOptions,
+                      plugins: {
+                        ...lineChartOptions.plugins,
+                        title: {
+                          ...lineChartOptions.plugins.title,
+                          text: `Daily Trend - ${monthNames[selectedMonth - 1]} ${selectedYear}`
+                        }
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Daily Summary Table */}
+                <div className="overflow-x-auto max-h-[500px]">
+                  {Array.isArray(dailyTrend) && dailyTrend.length > 0 ? (
+                    <table className="min-w-full divide-y divide-[#ECEFF1]">
+                      <thead className="bg-[#F5F7FA] sticky top-0">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#607D8B] uppercase tracking-wider">Date</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#607D8B] uppercase tracking-wider">Income</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#607D8B] uppercase tracking-wider">Expenses</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#607D8B] uppercase tracking-wider">Balance</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#607D8B] uppercase tracking-wider">Transactions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-[#ECEFF1]">
+                        {dailyTrend.map((item, index) => (
+                          <tr key={index} className="hover:bg-[#ECEFF1]/30">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#0B1F3A]">
+                              {item.date}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#2ECC71]">
+                              ₹{(item?.totalIncome || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#EB5757]">
+                              ₹{(item?.totalExpense || 0).toFixed(2)}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${(item?.balance || 0) >= 0 ? 'text-[#2ECC71]' : 'text-[#EB5757]'}`}>
+                              ₹{(item?.balance || 0).toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#607D8B]">
+                              {item?.transactionCount || 0}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center py-12 text-[#607D8B]">
+                      No daily data available for {monthNames[selectedMonth - 1]} {selectedYear}.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Category Breakdown Chart */}
             {activeTab === 'category' && (
               <div className="p-6">
                 <h2 className="text-xl font-semibold text-[#0B1F3A] mb-6">Expense Allocation</h2>
-                
+
                 {categorySummary.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="h-[400px]">
                       <Doughnut data={categorySummaryData} options={pieChartOptions} />
                     </div>
-                    
+
                     <div className="overflow-y-auto max-h-[400px]">
                       <table className="min-w-full divide-y divide-[#ECEFF1]">
                         <thead className="bg-[#F5F7FA]">
@@ -707,7 +833,7 @@ const Reports = () => {
                 )}
               </div>
             )}
-            
+
             {/* Yearly Comparison Chart */}
             {activeTab === 'yearly' && (
               <div className="p-6">
@@ -715,7 +841,7 @@ const Reports = () => {
                 <div className="h-[400px] mb-8">
                   <Bar data={yearlyComparisonData} options={barChartOptions} />
                 </div>
-                
+
                 {/* Summary Comparison */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-[#F5F7FA] rounded-lg p-6 border border-[#ECEFF1]">
@@ -743,7 +869,7 @@ const Reports = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="bg-[#F5F7FA] rounded-lg p-6 border border-[#ECEFF1]">
                     <h3 className="text-lg font-medium text-[#0B1F3A] mb-4">{selectedYear - 1} Summary</h3>
                     {yearlyComparison.prevYear && (

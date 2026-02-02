@@ -11,6 +11,8 @@ const fs = require('fs');
 // @access  Private
 exports.scanBill = async (req, res) => {
   console.log('scanBill function started.');
+  console.log('Request body:', req.body);
+  console.log('Request file:', req.file);
   try {
     if (!req.file) {
       console.log('No file uploaded.');
@@ -19,18 +21,12 @@ exports.scanBill = async (req, res) => {
 
     console.log('Uploaded file details:', req.file);
 
-    // OCR.space API implementation
+    // OCR.space API implementation with axios and form-data
     const form = new FormData();
     form.append('language', 'eng');
-    form.append('isOverlayRequired', 'false');
     form.append('file', fs.createReadStream(req.file.path));
     form.append('apikey', process.env.OCR_SPACE_API_KEY);
     form.append('filetype', req.file.mimetype.split('/')[1].toUpperCase());
-
-    // Add these for better table/receipt processing if supported by your plan, otherwise standard is fine
-    form.append('detectOrientation', 'true');
-    form.append('scale', 'true');
-    form.append('OCREngine', '2'); // Use OCR Engine 2 for better number recognition
 
     console.log('Making OCR.space API call.');
     const ocrResponse = await axios.post('https://api.ocr.space/parse/image', form, {
@@ -41,195 +37,202 @@ exports.scanBill = async (req, res) => {
     });
     console.log('OCR.space API call finished.');
 
-    // Clean up uploaded file
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error('Error deleting uploaded file:', err);
-    });
-
-    if (!ocrResponse || !ocrResponse.data || ocrResponse.data.IsErroredOnProcessing) {
-      console.error('OCR API Error:', ocrResponse?.data?.ErrorMessage);
-      return res.status(400).json({ success: false, error: 'Failed to process image. Please try a clearer image.' });
-    }
+    console.log('OCR.space API Response:', JSON.stringify(ocrResponse.data, null, 2));
 
     if (!ocrResponse.data.ParsedResults || ocrResponse.data.ParsedResults.length === 0) {
-      return res.status(400).json({ success: false, error: 'Could not extract text from the document.' });
+      return res.status(400).json({ success: false, error: 'Could not parse the document.' });
     }
 
     const parsedText = ocrResponse.data.ParsedResults[0].ParsedText;
-    console.log('Parsed Text (Raw):', parsedText);
+    console.log('Parsed Text:', parsedText);
 
-    // Split text into lines and clean up
-    const lines = parsedText.split(/\r\n|\n|\r/).map(line => line.trim()).filter(line => line.length > 0);
+    // Function to format date to YYYY-MM-DD
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      
+      if (dateStr instanceof Date) {
+        if (isNaN(dateStr.getTime())) return '';
+        dateStr = dateStr.toString();
+      }
+    
+      if (typeof dateStr !== 'string') {
+          return '';
+      }
 
-    // --- 1. AMOUNT EXTRACTION ---
+      let date;
+      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const monthIndex = monthNames.indexOf(dateStr.trim().toLowerCase().substring(0, 3));
+      if (monthIndex > -1) {
+        date = new Date();
+        date.setMonth(monthIndex);
+        const dayMatch = dateStr.match(/\b(\d{1,2})\b/);
+        if(dayMatch) {
+            date.setDate(parseInt(dayMatch[0], 10));
+        } else {
+            date.setDate(1);
+        }
+      } else {
+        date = new Date(dateStr);
+      }
+
+      if (isNaN(date.getTime())) return '';
+
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // More robust parsing for total amount, date, and supplier name
+    const lines = parsedText.split('\r\n');
     let totalAmount = '';
-
-    // Strategy: Look for "Total", "Amount", "Balance" lines, then look for numbers in that line or the next.
-    // Also collect all currency-like numbers as fallback.
-    const amountRegex = /(\d{1,3}(?:,\d{3})*(?:\.\d{2}))|(\d+\.\d{2})/; // Matches 1,234.56 or 1234.56 or 10.00
-    const moneyCandidates = [];
-
-    const totalKeywords = ['total', 'grand total', 'amount due', 'amount', 'balance', 'net payable', 'payable'];
-    const excludeKeywords = ['subtotal', 'sub total', 'tax', 'vat', 'gst', 'discount', 'change', 'cash'];
-
-    for (let i = 0; i < lines.length; i++) {
-      const lineLower = lines[i].toLowerCase();
-
-      // Check for specific "Total" context
-      const isTotalLine = totalKeywords.some(k => lineLower.includes(k)) && !excludeKeywords.some(k => lineLower.includes(k));
-
-      const match = lines[i].match(amountRegex);
-      if (match) {
-        // Clean the number (remove commas)
-        const valStr = match[0].replace(/,/g, '');
-        const val = parseFloat(valStr);
-        if (!isNaN(val)) {
-          moneyCandidates.push({
-            val,
-            isTotalContext: isTotalLine,
-            lineIndex: i
-          });
-        }
-      } else if (isTotalLine && i + 1 < lines.length) {
-        // Check next line content if current line has "Total" but no number
-        const nextLineMatch = lines[i + 1].match(amountRegex);
-        if (nextLineMatch) {
-          const valStr = nextLineMatch[0].replace(/,/g, '');
-          const val = parseFloat(valStr);
-          if (!isNaN(val)) {
-            moneyCandidates.push({
-              val,
-              isTotalContext: true,
-              lineIndex: i + 1
-            });
-          }
-        }
-      }
-    }
-
-    // Decision Logic for Amount
-    let bestAmountCandidate = null;
-
-    // First Priority: Highest value marked as 'isTotalContext'
-    const totalContextCandidates = moneyCandidates.filter(c => c.isTotalContext);
-    if (totalContextCandidates.length > 0) {
-      // Usually the grand total is the highest value among 'total' lines
-      bestAmountCandidate = totalContextCandidates.reduce((max, c) => c.val > max.val ? c : max, totalContextCandidates[0]);
-    }
-
-    // Second Priority: Just the highest money-like number found (fallback)
-    if (!bestAmountCandidate && moneyCandidates.length > 0) {
-      bestAmountCandidate = moneyCandidates.reduce((max, c) => c.val > max.val ? c : max, moneyCandidates[0]);
-    }
-
-    if (bestAmountCandidate) {
-      totalAmount = bestAmountCandidate.val.toFixed(2);
-    }
-    console.log('Extracted Amount:', totalAmount);
-
-
-    // --- 2. DATE EXTRACTION ---
     let date = '';
-    const dateRegexes = [
-      /\b(\d{1,2}[-./]\d{1,2}[-./]\d{2,4})\b/, // DD/MM/YYYY or MM/DD/YYYY or similar
-      /\b(\d{4}[-./]\d{1,2}[-./]\d{1,2})\b/, // YYYY/MM/DD
-      /\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,.-]*\d{1,2}(?:st|nd|rd|th)?[\s,.-]*\d{4})\b/i, // Dec 25, 2023
-      /\b(\d{1,2}[\s,.-]*(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,.-]*\d{4})\b/i // 25 Dec 2023
-    ];
-
-    for (const line of lines) {
-      // Skip obvious non-date lines to save time/false positives
-      if (line.length < 6) continue;
-
-      let foundDate = null;
-      for (const regex of dateRegexes) {
-        const match = line.match(regex);
-        if (match) {
-          // Try parsing
-          const parsed = Date.parse(match[0]);
-          if (!isNaN(parsed)) {
-            // Check if date is reasonable (not in far future, not older than 5 years)
-            const d = new Date(parsed);
-            const now = new Date();
-            const fiveYearsAgo = new Date();
-            fiveYearsAgo.setFullYear(now.getFullYear() - 5);
-
-            if (d <= now && d >= fiveYearsAgo) {
-              foundDate = d;
-              break; // Found a valid date on this line
-            }
-          }
-        }
-      }
-
-      if (foundDate) {
-        // Format to YYYY-MM-DD
-        const y = foundDate.getFullYear();
-        const m = (foundDate.getMonth() + 1).toString().padStart(2, '0');
-        const d = foundDate.getDate().toString().padStart(2, '0');
-        date = `${y}-${m}-${d}`;
-        break; // Stop after first valid date found (usually top of receipt)
-      }
-    }
-    console.log('Extracted Date:', date);
-
-
-    // --- 3. SHOP NAME EXTRACTION ---
     let supplierName = '';
 
-    // Filter out common header words
-    const junkWords = ['tax invoice', 'invoice', 'receipt', 'bill', 'cash', 'card', 'welcome', 'tel:', 'ph:', 'gstin', 'date:', 'table'];
+    // Regex for amount
+    const amountRegex = /(\d+\.\d{2})/;
+    const potentialAmounts = [];
 
-    for (let i = 0; i < Math.min(lines.length, 5); i++) {
-      const lineIndex = i;
-      const line = lines[i];
-      const lineLower = line.toLowerCase();
+    // 1. Find all potential amounts
+    lines.forEach((line, index) => {
+      const amountMatches = line.match(new RegExp(amountRegex, 'g'));
+      if (amountMatches) {
+        amountMatches.forEach(amount => {
+          potentialAmounts.push({
+            amount: parseFloat(amount),
+            context: line.toLowerCase(),
+            prevLineContext: index > 0 ? lines[index - 1].toLowerCase() : ''
+          });
+        });
+      }
+    });
 
-      // Heuristics
-      // 1. Line shouldn't be too short
-      if (line.length < 3) continue;
+    console.log('Potential amounts found:', potentialAmounts);
 
-      // 2. Line shouldn't contain junk words (mostly)
-      if (junkWords.some(w => lineLower.includes(w))) continue;
+    // 2. Determine the final amount
+    let finalAmount = null;
+    const totalKeywordAmounts = potentialAmounts.filter(p =>
+      (p.context.includes('total') || p.prevLineContext.includes('total')) &&
+      !p.context.includes('sub') && !p.prevLineContext.includes('sub')
+    );
 
-      // 3. Line shouldn't be the date
-      if (date && line.includes(date)) continue;
-
-      // 4. Line shouldn't be a pure number
-      if (!isNaN(parseFloat(line.replace(/[^0-9.]/g, '')))) continue;
-
-      // Found a good candidate!
-      supplierName = line;
-      break;
+    if (totalKeywordAmounts.length > 0) {
+      finalAmount = Math.max(...totalKeywordAmounts.map(p => p.amount));
     }
 
-    // Fallback: If no name found, use "Retailer"
-    if (!supplierName) {
-      supplierName = 'Retailer';
+    if (finalAmount === null) {
+      const amountKeywordAmounts = potentialAmounts.filter(p =>
+        p.context.includes('amount') || p.prevLineContext.includes('amount')
+      );
+      if (amountKeywordAmounts.length > 0) {
+        finalAmount = Math.max(...amountKeywordAmounts.map(p => p.amount));
+      }
     }
-    // Capitalize properly (Title Case)
-    supplierName = supplierName.toLowerCase().replace(/(?:^|\s)\S/g, function (a) { return a.toUpperCase(); });
 
-    console.log('Extracted Shop:', supplierName);
+    if (finalAmount === null && potentialAmounts.length > 0) {
+      finalAmount = Math.max(...potentialAmounts.map(p => p.amount));
+    }
 
+    if (finalAmount !== null) {
+      totalAmount = finalAmount.toFixed(2);
+    }
+    
+    console.log('Final amount selected:', totalAmount);
+
+    // 3. --- DATE LOGIC ---
+    const dateLine = lines.find(line => line.toLowerCase().includes('date'));
+    if (dateLine) {
+        console.log('Date line found:', dateLine);
+        const fullDateRegex = /(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/;
+        let match = dateLine.match(fullDateRegex);
+        if (match) {
+            date = formatDate(match[0]);
+        }
+
+        if (!date) {
+            const monthRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i;
+            const dayRegex = /\b(\d{1,2})\b/;
+            const yearRegex = /\b(\d{4})\b/;
+
+            const monthMatch = dateLine.match(monthRegex);
+            const dayMatch = dateLine.match(dayRegex);
+            const yearMatch = dateLine.match(yearRegex);
+
+            const month = monthMatch ? monthMatch[0] : null;
+            let day = dayMatch ? parseInt(dayMatch[0], 10) : null;
+            const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
+
+            if (day && (day < 1 || day > 31)) {
+                day = null;
+            }
+
+            if (month || day || year) {
+                const d = new Date();
+                if (year) d.setFullYear(year);
+                if (month) d.setMonth(new Date(Date.parse(month +" 1, 2000")).getMonth());
+                if (day) d.setDate(day);
+                
+                date = formatDate(d);
+            }
+        }
+        if(date) console.log('Date found:', date);
+    }
+    // --- END DATE LOGIC ---
+
+    // 4. --- SUPPLIER NAME LOGIC ---
+    const supplierKeywords = ['restaurant', 'cafe', 'store', 'market', 'bhavan', 'pothigai'];
+    let potentialSuppliers = [];
+
+    lines.forEach((line, index) => {
+        const lowerLine = line.toLowerCase();
+        if (lowerLine.includes('date:') || lowerLine.includes('time:') || lowerLine.includes('total') || lowerLine.match(/(\d+\.\d{2})/)) {
+            return;
+        }
+        if (line.replace(/[^a-zA-Z]/g, "").length < 3 || line.length > 50) {
+            return;
+        }
+
+        let score = 0;
+        if (index === 0) {
+            score += 5;
+        }
+        if (supplierKeywords.some(keyword => lowerLine.includes(keyword))) {
+            score += 3;
+        }
+        if (line.length > 3 && line === line.toUpperCase()) {
+            score += 2;
+        }
+
+        if (score > 0) {
+            potentialSuppliers.push({ name: line.trim(), score: score });
+        }
+    });
+
+    if (potentialSuppliers.length > 0) {
+        potentialSuppliers.sort((a, b) => b.score - a.score);
+        supplierName = potentialSuppliers[0].name;
+        console.log('Potential suppliers:', potentialSuppliers);
+    } else if (lines.length > 0) {
+        supplierName = lines.find(line => line.trim() !== '') || '';
+    }
+    console.log('Supplier name selected:', supplierName);
+    // --- END SUPPLIER NAME LOGIC ---
 
     const extractedData = {
-      description: supplierName, // Using shop name as default description
+      description: supplierName,
       amount: totalAmount,
       date: date,
-      category: null, // User must select
+      category: null,
       type: 'expense',
       shopName: supplierName
     };
 
     res.status(200).json({ success: true, data: extractedData });
-
   } catch (err) {
     console.error('Full error in scanBill:', err);
-    res.status(500).json({ success: false, error: 'Server Error processing bill.' });
+    res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
-
 
 // @desc    Get all transactions for a user
 // @route   GET /api/transactions
@@ -755,7 +758,7 @@ exports.getMonthlyTrend = async (req, res) => {
   try {
     // Get year from query params or use current year
     const year = parseInt(req.query.year) || new Date().getFullYear();
-
+    
     console.log('Monthly trend request - User ID:', req.user._id, 'User object:', req.user, 'Year:', year);
 
     // Create array to hold monthly data
@@ -800,80 +803,15 @@ exports.getMonthlyTrend = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
+        year,
         monthlyData
       }
     });
   } catch (err) {
-    console.error('Error fetching monthly trend:', err);
+    console.error('Error in getMonthlyTrend:', err);
     res.status(500).json({
       success: false,
       error: 'Server Error'
-    });
-  }
-};
-
-// @desc    Get daily trend for a specific month
-// @route   GET /api/transactions/summary/daily
-// @access  Private
-exports.getDailyTrend = async (req, res) => {
-  try {
-    const year = parseInt(req.query.year) || new Date().getFullYear();
-    const month = parseInt(req.query.month) || new Date().getMonth() + 1;
-
-    console.log(`Getting daily trend for Year: ${year}, Month: ${month}, User: ${req.user._id}`);
-
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-    const daysInMonth = endDate.getDate();
-
-    const transactions = await Transaction.find({
-      user: req.user._id,
-      date: { $gte: startDate, $lte: endDate },
-    });
-
-    const dailyData = [];
-
-    // Initialize array with all days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      dailyData.push({
-        day,
-        date: new Date(year, month - 1, day).toISOString().split('T')[0], // YYYY-MM-DD
-        totalIncome: 0,
-        totalExpense: 0,
-        balance: 0,
-        transactionCount: 0,
-      });
-    }
-
-    // Aggregate transactions
-    transactions.forEach((tx) => {
-      const day = new Date(tx.date).getDate();
-      if (day >= 1 && day <= daysInMonth) {
-        const dayIndex = day - 1;
-        if (tx.type === 'income') {
-          dailyData[dayIndex].totalIncome += tx.amount;
-        } else {
-          dailyData[dayIndex].totalExpense += tx.amount;
-        }
-        dailyData[dayIndex].transactionCount += 1;
-      }
-    });
-
-    // Calculate balance per day
-    dailyData.forEach(day => {
-      day.balance = day.totalIncome - day.totalExpense;
-    });
-
-    res.status(200).json({
-      success: true,
-      data: dailyData,
-    });
-
-  } catch (err) {
-    console.error('Error fetching daily trend:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Server Error',
     });
   }
 };

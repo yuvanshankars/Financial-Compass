@@ -65,7 +65,7 @@ cron.schedule('0 0 * * *', async () => {
       await Notification.create({
         user: rTransaction.user,
         title: 'Recurring Transaction Processed',
-        message: `Your recurring transaction "${rTransaction.title}" for $${rTransaction.amount} has been processed.`,
+        message: `Your recurring transaction "${rTransaction.title}" for ₹${rTransaction.amount} has been processed.`,
       });
 
       rTransaction.lastCreated = today;
@@ -99,7 +99,7 @@ cron.schedule('59 23 * * *', async () => {
     await Notification.create({
       user: user._id,
       title: 'Daily Report',
-      message: `Your daily report is ready. Income: $${income.toFixed(2)}, Expenses: $${expenses.toFixed(2)}`,
+      message: `Your daily report is ready. Income: ₹${income.toFixed(2)}, Expenses: ₹${expenses.toFixed(2)}`,
       type: 'daily_report',
     });
   }
@@ -130,7 +130,7 @@ cron.schedule('59 23 * * 0', async () => {
     await Notification.create({
       user: user._id,
       title: 'Weekly Report',
-      message: `Your weekly report is ready. Income: $${income.toFixed(2)}, Expenses: $${expenses.toFixed(2)}`,
+      message: `Your weekly report is ready. Income: ₹${income.toFixed(2)}, Expenses: ₹${expenses.toFixed(2)}`,
       type: 'weekly_report',
     });
   }
@@ -161,7 +161,7 @@ cron.schedule('59 23 L * *', async () => {
     await Notification.create({
       user: user._id,
       title: 'Monthly Report',
-      message: `Your monthly report is ready. Income: $${income.toFixed(2)}, Expenses: $${expenses.toFixed(2)}`,
+      message: `Your monthly report is ready. Income: ₹${income.toFixed(2)}, Expenses: ₹${expenses.toFixed(2)}`,
       type: 'monthly_report',
     });
   }

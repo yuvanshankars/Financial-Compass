@@ -1,11 +1,20 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
+const result = dotenv.config({ path: __dirname + '/.env' });
+if (result.error) {
+  console.error("Error loading .env file:", result.error);
+} else {
+  console.log("Environment variables loaded successfully. GEMINI_API_KEY is: " + (process.env.GEMINI_API_KEY ? "SET" : "NOT SET"));
+}
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+// Restart trigger
 const helmet = require('helmet');
 // require('dotenv').config({ path: './config/config.env' });
 const connectDB = require('./config/db');
 
+// Import routes
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -16,6 +25,7 @@ const recurringTransactionRoutes = require('./routes/recurringTransactions');
 const smsRoutes = require('./routes/sms');
 const investmentRoutes = require('./routes/investmentRoutes');
 const notificationRoutes = require('./routes/notifications');
+const aiRoutes = require('./routes/ai');
 // const financialGoalRoutes = require('./routes/financialGoals');
 
 // Initialize express app
@@ -74,6 +84,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/ai', aiRoutes);
 // app.use('/api/financial-goals', financialGoalRoutes);
 
 // Catch-all route for debugging

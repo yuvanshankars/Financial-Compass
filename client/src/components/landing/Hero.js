@@ -8,73 +8,65 @@ const Hero = () => {
   return (
     <div className="hero-section">
       <div className="hero-container">
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1>Financial Control at Your Fingertips</h1>
-            <p>
-              Professional-grade expense tracking with the simplicity you need. 
-              Monitor cash flow, optimize spending, and achieve your financial goals.
-            </p>
-            <div className="hero-actions">
-              {isAuthenticated ? (
-                <Link to="/dashboard" className="primary-button">
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link to="/register" className="primary-button">
-                    Start Free Trial
-                  </Link>
-                  <Link to="/login" className="secondary-button">
-                    Enterprise Demo <span aria-hidden="true">→</span>
-                  </Link>
-                </>
-              )}
-            </div>
-            <div className="trust-badges">
-              <div className="badge">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="#D4AF37" strokeWidth="2"/>
-                  <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="#D4AF37" strokeWidth="2"/>
+        <div className="hero-content-left">
+          <h1 className="hero-heading">Sign in.</h1>
+          <p className="hero-subtext" style={{ fontSize: '18px', color: '#BDC3C7', marginBottom: '32px', maxWidth: '400px' }}>
+            Effortlessly track your income and expenses. Gain financial clarity with real-time insights and smart budgeting tools designed for modern life.
+          </p>
+
+          <div className="social-login">
+            <p style={{ marginBottom: '16px' }}>Sign in with</p>
+            <div className="social-icons">
+              <a href="#" className="social-btn apple" onClick={(e) => e.preventDefault()}>
+                <svg viewBox="0 0 384 512" fill="currentColor" height="20">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 46.9 96.3 78.8 95.3 33.5-1.4 47.5-21.7 86.3-21.7 39 0 51.2 21.7 85.6 22 35.3.3 55.4-40.4 76.6-88.5 9-20.4 20-53.7 20-54.3-5-2.6-45.7-27.7-47-78.8zm-51.4-125c15.2-16.3 31.5-35.6 27.2-56-17.7 2.4-42.3 16.4-56.5 35-13.3 17.5-21.8 39.6-18.6 56.6 21.4 1.4 34.7-21.4 47.9-35.6z" />
                 </svg>
-                <span>Bank-level Security</span>
-              </div>
-              <div className="badge">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke="#D4AF37" strokeWidth="2"/>
+              </a>
+              <a href="/api/auth/google" className="social-btn google">
+                <svg viewBox="0 0 488 512" fill="currentColor" height="20">
+                  <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
                 </svg>
-                <span>SOC 2 Certified</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>
-        <div className="hero-preview">
-          <div className="dashboard-preview">
-            <div className="preview-header">
-              <div className="tab active">Portfolio</div>
-              <div className="tab">Transactions</div>
-              <div className="tab">Analytics</div>
-            </div>
-            <div className="preview-content">
-              <div className="preview-card">
-                <div className="card-header">
-                  <h3>Financial Overview</h3>
-                  <select className="time-selector">
-                    <option>Q2 2023</option>
-                    <option>Q1 2023</option>
-                    <option>2022</option>
-                  </select>
+
+        <div className="hero-content-right">
+          <div className="hero-illustration">
+            <div className="phone-mockup floating-animation">
+              <div className="phone-notch"></div>
+              <div className="phone-screen">
+                <div className="app-header">
+                  <div className="menu-icon"></div>
+                  <div className="user-avatar"></div>
                 </div>
-                <div className="stats-grid">
-                  <div className="stat income">
-                    <p>Assets</p>
-                    <p>$124,850</p>
-                    <div className="trend up">+2.4%</div>
+                <div className="balance-card">
+                  <span>Total Balance</span>
+                  <h3>₹12,450.20</h3>
+                  <div className="trend-badge">+2.4%</div>
+                </div>
+                <div className="action-buttons">
+                  <div className="btn-circle"></div>
+                  <div className="btn-circle"></div>
+                  <div className="btn-circle"></div>
+                </div>
+                <div className="stat-bars">
+                  <div className="bar" style={{ height: '40%' }}></div>
+                  <div className="bar" style={{ height: '70%' }}></div>
+                  <div className="bar active" style={{ height: '50%' }}></div>
+                  <div className="bar" style={{ height: '80%' }}></div>
+                </div>
+                <div className="floating-notification">
+                  <div className="icon-box">☕</div>
+                  <div className="text-box">
+                    <p>Starbucks</p>
+                    <span>-₹5.50</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          <h2 className="hero-tagline">Travel and expense, at the speed of chat</h2>
         </div>
       </div>
     </div>

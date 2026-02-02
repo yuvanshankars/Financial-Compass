@@ -54,10 +54,25 @@ export const getMonthlyTrend = async (year, cacheBuster) => {
   }
 };
 
+export const getDailyTrend = async (year, month, cacheBuster) => {
+  try {
+    const params = { year, month };
+    if (cacheBuster) {
+      params._ = new Date().getTime();
+    }
+    const response = await api.get('/api/transactions/summary/daily', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching daily trend in service:', error);
+    throw error;
+  }
+};
+
 export const reportService = {
   getMonthlySummary,
   getCategorySummary,
   getMonthlyTrend,
+  getDailyTrend,
 };
 
 export default reportService;

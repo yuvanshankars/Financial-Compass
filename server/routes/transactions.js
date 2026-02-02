@@ -10,6 +10,7 @@ const {
   getMonthlySummary,
   getCategorySummary,
   getMonthlyTrend,
+  getDailyTrend, // Added
   getPerformanceSummary,
   createBulkTransactions,
   getTransactionsByDate,
@@ -34,6 +35,9 @@ router.get('/summary/category', getCategorySummary);
 
 // Get monthly trend
 router.get('/summary/trend', getMonthlyTrend);
+
+// Get daily trend
+router.get('/summary/daily', getDailyTrend);
 
 // Get performance summary
 router.get('/summary/performance', getPerformanceSummary);

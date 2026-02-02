@@ -74,6 +74,20 @@ module.exports = {
       },
       boxShadow: {
         'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      },
+      keyframes: {
+        'slide-in-left': {
+          '0%': { transform: 'translateX(-20px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        }
+      },
+      animation: {
+        'slide-in-left': 'slide-in-left 0.5s ease-out forwards',
+        'fade-in': 'fade-in 0.5s ease-out forwards',
       }
     },
   },
